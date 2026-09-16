@@ -3,11 +3,14 @@ node_modules/
 backend/node_modules/
 frontend/node_modules/
 service-abonnements/node_modules/
+service-billetterie/node_modules/
+service-billetterie/logs/
 
 # Environment files
 .env
 backend/.env
 service-abonnements/.env
+service-billetterie/.env
 
 # Build outputs
 dist/

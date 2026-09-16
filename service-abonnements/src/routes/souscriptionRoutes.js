@@ -7,21 +7,23 @@ import {
   renouveler,
 } from '../controllers/souscriptionController.js';
 import { consommerVoyage, historiqueVoyages } from '../controllers/consommationController.js';
-import { protect, isAdmin } from '../middleware/auth.js';
+import { protect, isAdmin, isAdminOuAgent } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Réservé aux administrateurs (contrat §4)
-router.use(protect, isAdmin);
+// Gestion des souscriptions : reservee aux administrateurs (contrat §4)
+router.use(protect);
 
-router.route('/').post(souscrire).get(listerSouscriptions);
+router.route('/').post(isAdmin, souscrire).get(isAdmin, listerSouscriptions);
 
-// Déclarées avant /:id pour éviter que ces segments soient pris pour un identifiant
-router.patch('/:id/statut', changerStatut);
-router.post('/:id/renouveler', renouveler);
-router.post('/:id/consommer', consommerVoyage);
-router.get('/:id/historique', historiqueVoyages);
+// Declarees avant /:id pour eviter que ces segments soient pris pour un identifiant
+router.patch('/:id/statut', isAdmin, changerStatut);
+router.post('/:id/renouveler', isAdmin, renouveler);
+// Consommer un voyage et consulter l'historique : c'est l'agent sur le
+// terrain qui scanne, pas l'administrateur (voir isAdminOuAgent).
+router.post('/:id/consommer', isAdminOuAgent, consommerVoyage);
+router.get('/:id/historique', isAdminOuAgent, historiqueVoyages);
 
-router.get('/:id', obtenirSouscription);
+router.get('/:id', isAdmin, obtenirSouscription);
 
 export default router;
