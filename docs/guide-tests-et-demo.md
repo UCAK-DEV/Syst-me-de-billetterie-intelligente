@@ -73,7 +73,7 @@ Depuis la racine :
 npm run dev
 ```
 
-Démarre les trois services ensemble : l'API Express du Service Utilisateurs (port 5050), l'API Express du Service Abonnements (port 5060) et le frontend React (port 5173). Ouvrir `http://localhost:5173`.
+Démarre les trois services ensemble : l'API Express du Service Utilisateurs (port 5050), l'API Express du Service Abonnements (port 5065) et le frontend React (port 5173). Ouvrir `http://localhost:5173`.
 
 ## 7. Lancer les tests
 
@@ -143,4 +143,4 @@ Nécessite `service-abonnements` démarré (§6) avec sa base MySQL et le catalo
 | Erreur CORS dans la console du navigateur | Le backend a crashé (souvent lié à MongoDB) | Vérifier les logs du terminal backend |
 | `401 Unauthorized` au login | Base de données vide, pas d'admin créé | `npm run seed:admin` |
 | `service-abonnements` ne démarre pas | MySQL pas démarré, ou `.env` manquant | Vérifier que MySQL écoute sur le port configuré, créer `service-abonnements/.env` |
-| "NetworkError" ou "Impossible de récupérer..." sur les pages Formules/Abonnements/Tableau de bord | `service-abonnements` (port 5060) n'est pas démarré | `npm run dev` depuis la racine, ou `npm run dev --prefix service-abonnements` |
+| "NetworkError" ou "Impossible de récupérer..." sur les pages Formules/Abonnements/Tableau de bord | `service-abonnements` (port 5065) n'est pas démarré | `npm run dev` depuis la racine, ou `npm run dev --prefix service-abonnements` |

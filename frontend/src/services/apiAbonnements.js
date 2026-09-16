@@ -1,12 +1,16 @@
 // Client API du Service Abonnements — voir PLAN-SERVICE-ABONNEMENTS.md §4 pour le contrat.
 //
-// Branché sur le vrai service (service-abonnements/, port 5060, MySQL).
+// Branché sur le vrai service (service-abonnements/, port 5065, MySQL).
 // A tourné en simulation en mémoire le temps que le backend soit prêt (voir
 // l'historique git de ce fichier) ; signatures et formes de réponse inchangées
 // pour les composants qui le consomment.
+//
+// Port 5065, pas 5060 : 5060/5061 (SIP) sont sur la liste des ports "unsafe"
+// des navigateurs Chromium, qui refusent toute requête HTTP dessus
+// (ERR_UNSAFE_PORT) quel que soit le serveur en face.
 export const USING_SIMULATION = false;
 
-const API_URL = import.meta.env.VITE_ABONNEMENTS_API_URL || 'http://localhost:5060/api/abonnements';
+const API_URL = import.meta.env.VITE_ABONNEMENTS_API_URL || 'http://localhost:5065/api/abonnements';
 
 export class ApiAbonnementsError extends Error {
   constructor(message, status) {

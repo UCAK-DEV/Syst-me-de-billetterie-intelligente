@@ -3,7 +3,7 @@
 Projet : Système de billetterie intelligente avec QR Code et abonnements.
 Périmètre : Service Abonnements — gestion des formules, souscription d'un client, consommation des voyages et cycle de vie d'un abonnement. Deuxième phase du projet, démarrée avec l'accord du professeur une fois le Service Utilisateurs terminé (voir [TP1-service-utilisateurs.md](TP1-service-utilisateurs.md)).
 
-Même répartition qu'au premier TP : une personne sur le front (`frontend/src/**`), une sur le back, cette fois un microservice indépendant (`service-abonnements/`, Node/Express/MySQL, port 5060) qui ne touche jamais à la base MongoDB du Service Utilisateurs — seul le jeton JWT est partagé entre les deux services. Le contrat d'API a été figé avant d'écrire une ligne de code : [PLAN-SERVICE-ABONNEMENTS.md](../PLAN-SERVICE-ABONNEMENTS.md).
+Même répartition qu'au premier TP : une personne sur le front (`frontend/src/**`), une sur le back, cette fois un microservice indépendant (`service-abonnements/`, Node/Express/MySQL, port 5065) qui ne touche jamais à la base MongoDB du Service Utilisateurs — seul le jeton JWT est partagé entre les deux services. Le contrat d'API a été figé avant d'écrire une ligne de code : [PLAN-SERVICE-ABONNEMENTS.md](../PLAN-SERVICE-ABONNEMENTS.md).
 
 ---
 

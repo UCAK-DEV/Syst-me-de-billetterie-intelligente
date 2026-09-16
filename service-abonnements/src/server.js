@@ -10,9 +10,12 @@ import { connectDB } from './config/database.js';
 import './models/index.js';
 import app from './app.js';
 
-// Port 5060 : distinct du Service Utilisateurs (5050) et du frontend (5173).
+// Port 5065 : distinct du Service Utilisateurs (5050) et du frontend (5173).
 // Les deux services doivent pouvoir tourner en même temps.
-const PORT = process.env.PORT || 5060;
+// (5060/5061 sont bannis par les navigateurs Chromium — ce sont les ports SIP
+// standards, classés "unsafe" ; toute requête HTTP dessus échoue avec
+// ERR_UNSAFE_PORT, quel que soit le code du serveur.)
+const PORT = process.env.PORT || 5065;
 
 const demarrer = async () => {
   await connectDB();

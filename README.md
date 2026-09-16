@@ -175,7 +175,7 @@ src/
     AbonnementStats.jsx         tableau de bord des abonnements
   services/
     api.js                      appels HTTP vers le Service Utilisateurs, gestion du jeton JWT
-    apiAbonnements.js           client du Service Abonnements (appels HTTP réels vers service-abonnements, port 5060)
+    apiAbonnements.js           client du Service Abonnements (appels HTTP réels vers service-abonnements, port 5065)
   utils/
     validators.js                règles de validation Service Utilisateurs : e-mail, téléphone, mot de passe
     validatorsAbonnements.js     règles de validation Service Abonnements : formule, souscription
@@ -201,7 +201,7 @@ src/
 | PATCH | /api/admin/users/bulk-status | administrateur | action groupée |
 | POST | /api/admin/users/import | administrateur | import CSV |
 
-### Service Abonnements (port 5060)
+### Service Abonnements (port 5065)
 
 | Méthode | Route | Accès | Description |
 |---|---|---|---|
@@ -254,7 +254,7 @@ Créer `backend/.env` sur le modèle de `backend/.env.example`, et `service-abon
 npm run dev
 ```
 
-Démarre les trois services ensemble : l'API Express du Service Utilisateurs (port 5050), l'API Express du Service Abonnements (port 5060) et le serveur de développement React (port 5173).
+Démarre les trois services ensemble : l'API Express du Service Utilisateurs (port 5050), l'API Express du Service Abonnements (port 5065) et le serveur de développement React (port 5173).
 
 ## Documentation
 

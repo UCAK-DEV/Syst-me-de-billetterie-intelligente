@@ -22,7 +22,7 @@ Utilisateurs. Nous partons donc sur un véritable microservice :
 | Point | Décision |
 |---|---|
 | Emplacement | Nouveau dossier `service-abonnements/` à la racine |
-| API | Node.js + Express, **propre serveur, propre port (5060)** |
+| API | Node.js + Express, **propre serveur, propre port (5065)** |
 | Base de données | **MySQL** (ORM : Sequelize) — distincte de MongoDB |
 | Lien avec les utilisateurs | On ne stocke **que** `utilisateur_id`. Aucune donnée personnelle dupliquée |
 | Authentification | Le même `JWT_SECRET` que le Service Utilisateurs, pour valider les jetons émis par lui |
@@ -39,7 +39,7 @@ service-abonnements/
 ├── .env.example
 └── src/
     ├── app.js                   ← application Express exportée (testable)
-    ├── server.js                ← connexion BDD + écoute du port 5060
+    ├── server.js                ← connexion BDD + écoute du port 5065
     ├── config/database.js       ← connexion Sequelize
     ├── models/                  ← Formule, Abonnement, Consommation
     ├── controllers/
@@ -86,7 +86,7 @@ Repris du cahier des charges, découpé en lots livrables.
 
 | # | Tâche | Livrable |
 |---|---|---|
-| A1 | Initialiser le microservice (package.json, Express, Sequelize, `.env.example`) | `service-abonnements/` démarre sur le port 5060 |
+| A1 | Initialiser le microservice (package.json, Express, Sequelize, `.env.example`) | `service-abonnements/` démarre sur le port 5065 |
 | A2 | Modèles Sequelize : `Formule`, `Abonnement`, `Consommation` | Tables créées, relations posées |
 | A3 | Middleware d'authentification (vérification du JWT, rôle administrateur) | Routes protégées |
 | A4 | CRUD des formules | Endpoints §4.1 |
@@ -122,7 +122,7 @@ Repris du cahier des charges, découpé en lots livrables.
 > champ identifiant, valeurs des actions, route manquante…). Tout a dû être
 > repris. On ne recommence pas.
 
-**Base :** `http://localhost:5060/api/abonnements`
+**Base :** `http://localhost:5065/api/abonnements`
 **Authentification :** en-tête `Authorization: Bearer <token>` sur **toutes** les routes.
 
 ### Conventions transverses (non négociables)
