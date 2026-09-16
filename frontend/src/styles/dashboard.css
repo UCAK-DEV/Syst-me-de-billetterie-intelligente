@@ -295,6 +295,18 @@ body {
   border-color: #cbd5e1;
 }
 
+/* Carte cliquable : mène à la liste correspondante */
+.stats-card-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.stats-card-link:hover {
+  border-color: var(--primary-color);
+}
+
 .stats-card-header {
   display: flex;
   align-items: center;

@@ -156,24 +156,16 @@ function AbonnementsManagement() {
               ))}
             </div>
 
-            <div className="filter-chip-group" role="group" aria-label="Filtrer par statut">
-              {[
-                { value: 'Tous', label: 'Tous les statuts' },
-                { value: 'ACTIF', label: 'Actif' },
-                { value: 'SUSPENDU', label: 'Suspendu' },
-                { value: 'EXPIRE', label: 'Expiré' },
-                { value: 'EPUISE', label: 'Épuisé' },
-                { value: 'RESILIE', label: 'Résilié' },
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  className={`filter-chip${statutFilter === option.value ? ' selected' : ''}`}
-                  onClick={() => setStatutFilter(option.value)}
-                >
-                  {option.label}
-                </button>
-              ))}
+            <div className="filter-dropdown-item">
+              <label className="filter-label">Statut</label>
+              <select value={statutFilter} onChange={(e) => setStatutFilter(e.target.value)} className="filter-select">
+                <option value="Tous">Tous les statuts</option>
+                <option value="ACTIF">Actif</option>
+                <option value="SUSPENDU">Suspendu</option>
+                <option value="EXPIRE">Expiré</option>
+                <option value="EPUISE">Épuisé</option>
+                <option value="RESILIE">Résilié</option>
+              </select>
             </div>
           </div>
         </section>

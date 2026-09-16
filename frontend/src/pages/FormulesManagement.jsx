@@ -153,21 +153,13 @@ function FormulesManagement() {
               ))}
             </div>
 
-            <div className="filter-chip-group" role="group" aria-label="Filtrer par statut">
-              {[
-                { value: 'Tous', label: 'Tous les statuts' },
-                { value: 'Actif', label: 'Actives' },
-                { value: 'Inactif', label: 'Inactives' },
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  className={`filter-chip${statusFilter === option.value ? ' selected' : ''}`}
-                  onClick={() => setStatusFilter(option.value)}
-                >
-                  {option.label}
-                </button>
-              ))}
+            <div className="filter-dropdown-item">
+              <label className="filter-label">Statut</label>
+              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="filter-select">
+                <option value="Tous">Tous les statuts</option>
+                <option value="Actif">Actives</option>
+                <option value="Inactif">Inactives</option>
+              </select>
             </div>
           </div>
         </section>

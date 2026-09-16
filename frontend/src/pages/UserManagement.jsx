@@ -384,31 +384,28 @@ function UserManagement() {
               ))}
             </div>
 
-            <div className="filter-chip-group" role="group" aria-label="Filtrer par statut">
-              {[
-                { value: 'Tous', label: 'Tous les statuts' },
-                { value: 'Actif', label: 'Actifs' },
-                { value: 'Bloqué', label: 'Bloqués' },
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  className={`filter-chip${statusFilter === option.value ? ' selected' : ''}`}
-                  onClick={() => setStatusFilter(option.value)}
-                >
-                  {option.label}
-                </button>
-              ))}
-              <button
-                type="button"
-                className={`filter-chip${isTrashView ? ' selected danger' : ''}`}
-                onClick={() => setStatusFilter(isTrashView ? 'Tous' : 'Supprimé')}
-                title="Voir les comptes supprimés"
+            <div className="filter-dropdown-item">
+              <label className="filter-label">Statut</label>
+              <select
+                value={isTrashView ? 'Tous' : statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="filter-select"
               >
-                <span className="material-symbols-outlined" style={{ fontSize: '14px', verticalAlign: 'text-bottom', marginRight: '0.25rem' }}>delete</span>
-                Corbeille ({globalStats.supprime})
-              </button>
+                <option value="Tous">Tous les statuts</option>
+                <option value="Actif">Actifs</option>
+                <option value="Bloqué">Bloqués</option>
+              </select>
             </div>
+
+            <button
+              type="button"
+              className={`filter-chip${isTrashView ? ' selected danger' : ''}`}
+              onClick={() => setStatusFilter(isTrashView ? 'Tous' : 'Supprimé')}
+              title="Voir les comptes supprimés"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '14px', verticalAlign: 'text-bottom', marginRight: '0.25rem' }}>delete</span>
+              Corbeille ({globalStats.supprime})
+            </button>
           </div>
         </section>
 

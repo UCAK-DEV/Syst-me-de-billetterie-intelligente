@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { getStatsAbonnements } from '../services/apiAbonnements';
 
 const STATUT_LABELS = {
@@ -24,6 +25,7 @@ const TYPE_LABELS = {
 };
 
 function AbonnementStats() {
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -64,13 +66,27 @@ function AbonnementStats() {
     <main className="main-content">
       <section className="page-header">
         <div>
-          <h1 className="page-title">Tableau de bord des abonnements</h1>
-          <p className="page-subtitle">Vue d'ensemble des souscriptions actives et de leur usage</p>
+          <h1 className="page-title">Tableau de bord</h1>
+          <p className="page-subtitle">Vue d'ensemble des abonnements et de leur usage</p>
+        </div>
+        <div className="action-button-group">
+          <button className="btn-secondary" onClick={() => navigate('/users')}>
+            <span className="material-symbols-outlined btn-icon">person_add</span>
+            Ajouter un utilisateur
+          </button>
+          <button className="btn-secondary" onClick={() => navigate('/formules')}>
+            <span className="material-symbols-outlined btn-icon">add</span>
+            Créer une formule
+          </button>
+          <button className="btn-primary" onClick={() => navigate('/abonnements')}>
+            <span className="material-symbols-outlined btn-icon">card_membership</span>
+            Nouvelle souscription
+          </button>
         </div>
       </section>
 
       <section className="stats-grid">
-        <div className="stats-card">
+        <Link to="/abonnements" className="stats-card stats-card-link">
           <div className="stats-card-header">
             <span className="material-symbols-outlined stats-card-icon" style={{ backgroundColor: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5' }}>
               card_membership
@@ -78,7 +94,7 @@ function AbonnementStats() {
             <h3 className="stats-card-title">Total abonnements</h3>
           </div>
           <span className="metric-value">{stats.total}</span>
-        </div>
+        </Link>
 
         <div className="stats-card">
           <div className="stats-card-header">
@@ -100,7 +116,7 @@ function AbonnementStats() {
           <span className="metric-value">{stats.voyagesConsommesTotal}</span>
         </div>
 
-        <div className="stats-card">
+        <Link to="/abonnements" className="stats-card stats-card-link">
           <div className="stats-card-header">
             <span className="material-symbols-outlined stats-card-icon" style={{ backgroundColor: '#fffbeb', color: '#b45309' }}>
               schedule
@@ -108,7 +124,7 @@ function AbonnementStats() {
             <h3 className="stats-card-title">Expirent sous 7 jours</h3>
           </div>
           <span className="metric-value">{stats.expirentSous7Jours}</span>
-        </div>
+        </Link>
       </section>
 
       <section className="table-card" style={{ padding: '1.5rem 2rem' }}>
