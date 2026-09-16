@@ -33,7 +33,15 @@ async function request(path, options = {}) {
     headers['Content-Type'] = headers['Content-Type'] || 'application/json';
   }
 
-  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
+  let res;
+  try {
+    res = await fetch(`${API_URL}${path}`, { ...options, headers });
+  } catch {
+    // Le Service Abonnements ne répond pas (arrêté, ou pas encore démarré) :
+    // le message du navigateur n'a aucun sens pour l'utilisateur.
+    throw new ApiAbonnementsError("Impossible de contacter le service Abonnements. Vérifiez qu'il est démarré.");
+  }
+
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {

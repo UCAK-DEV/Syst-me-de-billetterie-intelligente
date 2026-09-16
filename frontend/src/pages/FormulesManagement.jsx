@@ -234,7 +234,9 @@ function FormulesManagement() {
                   ) : (
                     <tr>
                       <td colSpan="7" className="table-empty-cell">
-                        Aucune formule trouvée correspondant aux filtres.
+                        {searchQuery || typeFilter !== 'Tous' || statusFilter !== 'Tous'
+                          ? 'Aucune formule ne correspond à ces critères.'
+                          : 'Aucune formule créée pour l\'instant — cliquez sur "Créer une formule" pour démarrer le catalogue.'}
                       </td>
                     </tr>
                   )}

@@ -46,7 +46,16 @@ async function request(path, options = {}) {
     headers['Content-Type'] = headers['Content-Type'] || 'application/json';
   }
 
-  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
+  let res;
+  try {
+    res = await fetch(`${API_URL}${path}`, { ...options, headers });
+  } catch {
+    // Le serveur du Service Utilisateurs ne répond pas (arrêté, ou pas
+    // encore démarré) : le message du navigateur ("Failed to fetch",
+    // "NetworkError...") n'a aucun sens pour l'utilisateur.
+    throw new Error("Impossible de contacter le serveur. Vérifiez qu'il est démarré.");
+  }
+
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {

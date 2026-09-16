@@ -10,6 +10,11 @@ import AbonnementDetail from './pages/AbonnementDetail.jsx';
 import AbonnementStats from './pages/AbonnementStats.jsx';
 import ProfileSettings from './pages/ProfileSettings.jsx';
 import DashboardLayout from './components/DashboardLayout.jsx';
+import ScanValidation from './pages/ScanValidation.jsx';
+import TitresManagement from './pages/TitresManagement.jsx';
+import ValidationsHistory from './pages/ValidationsHistory.jsx';
+import AuditLogs from './pages/AuditLogs.jsx';
+import BilletterieStats from './pages/BilletterieStats.jsx';
 
 function App() {
   return (
@@ -19,19 +24,30 @@ function App() {
         <Route path="/change-password" element={<ForcePasswordChange />} />
         <Route path="/confirmation/:token" element={<ConfirmAccount />} />
 
-        {/* Admin Dashboard Protected Layout */}
+        {/* Protected Dashboard Layout */}
         <Route path="/" element={<DashboardLayout />}>
           <Route index element={<Navigate to="/stats" replace />} />
+
+          {/* Service Utilisateurs */}
           <Route path="users" element={<UserManagement />} />
+          <Route path="profile" element={<ProfileSettings />} />
+
+          {/* Service Abonnements */}
           <Route path="formules" element={<FormulesManagement />} />
           <Route path="abonnements" element={<AbonnementsManagement />} />
           <Route path="abonnements/:id" element={<AbonnementDetail />} />
           <Route path="stats" element={<AbonnementStats />} />
-          <Route path="profile" element={<ProfileSettings />} />
           <Route path="subscriptions" element={<Navigate to="/abonnements" replace />} />
+
+          {/* Service Billetterie (QR Code, Contrôle, Audit, Stats) */}
+          <Route path="scan" element={<ScanValidation />} />
+          <Route path="titres" element={<TitresManagement />} />
+          <Route path="validations" element={<ValidationsHistory />} />
+          <Route path="audit" element={<AuditLogs />} />
+          <Route path="billetterie-stats" element={<BilletterieStats />} />
         </Route>
 
-        {/* Redirect any other path to /login for now */}
+        {/* Fallback */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
@@ -39,4 +55,3 @@ function App() {
 }
 
 export default App;
-

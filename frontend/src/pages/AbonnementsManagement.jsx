@@ -234,7 +234,9 @@ function AbonnementsManagement() {
                   ) : (
                     <tr>
                       <td colSpan="6" className="table-empty-cell">
-                        Aucun abonnement trouvé correspondant aux filtres.
+                        {searchQuery || typeFilter !== 'Tous' || statutFilter !== 'Tous'
+                          ? 'Aucun abonnement ne correspond à ces critères.'
+                          : 'Aucun abonnement souscrit pour l\'instant — cliquez sur "Nouvelle souscription" pour créer le premier.'}
                       </td>
                     </tr>
                   )}
