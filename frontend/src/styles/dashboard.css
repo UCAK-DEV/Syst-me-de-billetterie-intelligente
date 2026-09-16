@@ -9,8 +9,8 @@
   --primary-light: #eff6ff;
   --text-dark: #0f172a;
   --text-muted: #64748b;
-  --card-bg: rgba(255, 255, 255, 0.7);
-  --border-glass: rgba(255, 255, 255, 0.5);
+  --card-bg: #ffffff;
+  --border-glass: #e2e8f0;
 }
 
 body {
@@ -18,11 +18,12 @@ body {
   padding: 0;
   font-family: var(--font-sans);
   color: var(--text-dark);
-  background-color: #f0f2f9;
+  background-color: #f4f5f7;
   overflow-x: hidden;
 }
 
-/* Gemini Mesh Gradient Background */
+/* Fond neutre : les dégradés flottants et le flou ont été retirés, ils
+   masquaient la lisibilité et donnaient un rendu "template générique". */
 .gemini-bg {
   position: fixed;
   top: 0;
@@ -30,48 +31,17 @@ body {
   width: 100vw;
   height: 100vh;
   z-index: -2;
-  background: radial-gradient(circle at 0% 0%, #e8ecff 0%, transparent 50%),
-              radial-gradient(circle at 100% 0%, #f3e8ff 0%, transparent 50%),
-              radial-gradient(circle at 100% 100%, #ffe8e8 0%, transparent 50%),
-              radial-gradient(circle at 0% 100%, #e8faff 0%, transparent 50%);
-  background-color: #f8f9ff;
+  background-color: #f4f5f7;
 }
 
-.gemini-aura {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  filter: blur(80px);
-  opacity: 0.65;
-  z-index: -1;
-  overflow: hidden;
-  pointer-events: none;
-}
-
+.gemini-aura,
 .aura-spot {
-  position: absolute;
-  border-radius: 50%;
-  animation: float-aura 20s infinite alternate ease-in-out;
+  display: none;
 }
 
-.spot-1 { width: 60vw; height: 60vw; background: #4285f4; top: -20%; left: -10%; opacity: 0.15; animation-delay: 0s; }
-.spot-2 { width: 50vw; height: 50vw; background: #9b72cb; bottom: -10%; right: -5%; opacity: 0.15; animation-delay: -5s; }
-.spot-3 { width: 40vw; height: 40vw; background: #d96570; top: 20%; right: 10%; opacity: 0.1; animation-delay: -10s; }
-
-@keyframes float-aura {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(5%, 10%) scale(1.1); }
-  100% { transform: translate(-5%, 5%) scale(0.9); }
-}
-
-/* Glassmorphism Navigation Bar */
 .navbar {
-  height: 68px;
-  background-color: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  height: 64px;
+  background-color: #ffffff;
   border-bottom: 1px solid var(--border-glass);
   padding: 0 2rem;
   display: flex;
@@ -80,7 +50,6 @@ body {
   position: sticky;
   top: 0;
   z-index: 90;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02);
 }
 
 .nav-brand {
@@ -294,21 +263,16 @@ body {
   flex-shrink: 0;
 }
 
-/* Material 3 / Glass Cards */
 .stats-card, .table-card, .plan-card {
   background-color: var(--card-bg);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
   border: 1px solid var(--border-glass);
-  border-radius: 2rem;
+  border-radius: 0.75rem;
   padding: 1.5rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .stats-card:hover, .table-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.05);
+  border-color: #cbd5e1;
 }
 
 /* Accent par catégorie : reprend les couleurs déjà utilisées pour les
@@ -558,13 +522,10 @@ body {
   background-color: rgba(79, 70, 229, 0.08);
 }
 
-/* Modals glass overlay and Material 3 design */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(15, 23, 42, 0.2);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background-color: rgba(15, 23, 42, 0.45);
   z-index: 100;
   display: flex;
   align-items: center;
@@ -573,16 +534,13 @@ body {
 }
 
 .modal-panel {
-  background-color: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 2.5rem;
+  background-color: #ffffff;
+  border: 1px solid var(--border-glass);
+  border-radius: 0.75rem;
   width: 100%;
   max-width: 520px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 30px -8px rgba(15, 23, 42, 0.2);
   overflow: hidden;
-  animation: modalEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .modal-header {

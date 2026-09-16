@@ -16,18 +16,15 @@
 .login-card {
   width: 100%;
   max-width: 400px;
-  background-color: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(35px);
-  -webkit-backdrop-filter: blur(35px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 2.5rem;
+  background-color: #ffffff;
+  border: 1px solid var(--border-glass);
+  border-radius: 0.75rem;
   padding: 2.5rem 2.25rem;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   z-index: 10;
-  animation: modalEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .login-header {
@@ -51,9 +48,6 @@
   transition: all 0.3s ease;
 }
 
-.logo-badge:hover {
-  transform: rotate(10deg);
-}
 
 .logo-icon {
   font-size: 26px;
@@ -209,19 +203,16 @@
   background-color: var(--primary-color);
   color: #ffffff;
   border: none;
-  border-radius: 9999px;
+  border-radius: 0.5rem;
   font-size: 0.875rem;
   font-weight: 700;
-  box-shadow: 0 8px 16px rgba(79, 70, 229, 0.15);
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.15s ease;
   margin-top: 0.5rem;
 }
 
 .login-submit-btn:hover {
   background-color: var(--primary-dark);
-  transform: translateY(-1px);
-  box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
 }
 
 .login-submit-btn:active {
