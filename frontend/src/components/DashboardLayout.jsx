@@ -70,57 +70,53 @@ function DashboardLayout() {
           <span className="nav-brand-text">Billetterie Intelligente</span>
         </div>
 
-        {/* Centralized Navigation Tabs for Admin Area */}
-        <div className="nav-right-area">
+        {/* Navigation centrée : uniquement les sections de gestion.
+            L'accès au profil se fait via l'identité, à droite — pas besoin
+            d'un onglet "Mon profil" en plus de l'avatar qui l'affiche déjà. */}
+        {isAdmin && (
           <nav className="nav-links">
-            {isAdmin && (
-              <>
-                <Link
-                  to="/users"
-                  title="Utilisateurs"
-                  className={`nav-link-item ${currentPath === '/users' ? 'active' : ''}`}
-                >
-                  <span className="material-symbols-outlined">group</span>
-                  <span className="nav-link-text">Utilisateurs</span>
-                </Link>
-                <Link
-                  to="/formules"
-                  title="Formules"
-                  className={`nav-link-item ${currentPath === '/formules' ? 'active' : ''}`}
-                >
-                  <span className="material-symbols-outlined">confirmation_number</span>
-                  <span className="nav-link-text">Formules</span>
-                </Link>
-                <Link
-                  to="/abonnements"
-                  title="Abonnements"
-                  className={`nav-link-item ${currentPath.startsWith('/abonnements') ? 'active' : ''}`}
-                >
-                  <span className="material-symbols-outlined">card_membership</span>
-                  <span className="nav-link-text">Abonnements</span>
-                </Link>
-                <Link
-                  to="/stats"
-                  title="Tableau de bord"
-                  className={`nav-link-item ${currentPath === '/stats' ? 'active' : ''}`}
-                >
-                  <span className="material-symbols-outlined">bar_chart</span>
-                  <span className="nav-link-text">Tableau de bord</span>
-                </Link>
-              </>
-            )}
             <Link
-              to="/profile"
-              title="Mon profil"
-              className={`nav-link-item ${currentPath === '/profile' ? 'active' : ''}`}
+              to="/users"
+              title="Utilisateurs"
+              className={`nav-link-item ${currentPath === '/users' ? 'active' : ''}`}
             >
-              <span className="material-symbols-outlined">account_circle</span>
-              <span className="nav-link-text">Mon profil</span>
+              <span className="material-symbols-outlined">group</span>
+              <span className="nav-link-text">Utilisateurs</span>
+            </Link>
+            <Link
+              to="/formules"
+              title="Formules"
+              className={`nav-link-item ${currentPath === '/formules' ? 'active' : ''}`}
+            >
+              <span className="material-symbols-outlined">confirmation_number</span>
+              <span className="nav-link-text">Formules</span>
+            </Link>
+            <Link
+              to="/abonnements"
+              title="Abonnements"
+              className={`nav-link-item ${currentPath.startsWith('/abonnements') ? 'active' : ''}`}
+            >
+              <span className="material-symbols-outlined">card_membership</span>
+              <span className="nav-link-text">Abonnements</span>
+            </Link>
+            <Link
+              to="/stats"
+              title="Tableau de bord"
+              className={`nav-link-item ${currentPath === '/stats' ? 'active' : ''}`}
+            >
+              <span className="material-symbols-outlined">bar_chart</span>
+              <span className="nav-link-text">Tableau de bord</span>
             </Link>
           </nav>
+        )}
 
-          {user && (
-            <div className="nav-user">
+        {user && (
+          <div className="nav-user">
+            <Link
+              to="/profile"
+              className="nav-user-identity"
+              title="Mon profil"
+            >
               <div className="nav-user-avatar">
                 {user.photo ? (
                   <img
@@ -133,17 +129,17 @@ function DashboardLayout() {
                 )}
               </div>
               <span className="nav-user-name">{user.prenom} {user.nom}</span>
-              <button
-                onClick={handleLogout}
-                className="icon-btn logout-btn"
-                title="Se déconnecter"
-                aria-label="Se déconnecter"
-              >
-                <span className="material-symbols-outlined">logout</span>
-              </button>
-            </div>
-          )}
-        </div>
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="icon-btn logout-btn"
+              title="Se déconnecter"
+              aria-label="Se déconnecter"
+            >
+              <span className="material-symbols-outlined">logout</span>
+            </button>
+          </div>
+        )}
       </header>
 
       {/* Render children pages — jamais avant d'avoir vérifié que le rôle

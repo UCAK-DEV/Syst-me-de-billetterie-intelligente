@@ -70,7 +70,7 @@ function AbonnementStats() {
       </section>
 
       <section className="stats-grid">
-        <div className="stats-card" style={{ borderLeft: '4px solid #4f46e5' }}>
+        <div className="stats-card">
           <div className="stats-card-header">
             <span className="material-symbols-outlined stats-card-icon" style={{ backgroundColor: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5' }}>
               card_membership
@@ -80,7 +80,7 @@ function AbonnementStats() {
           <span className="metric-value">{stats.total}</span>
         </div>
 
-        <div className="stats-card" style={{ borderLeft: '4px solid #059669' }}>
+        <div className="stats-card">
           <div className="stats-card-header">
             <span className="material-symbols-outlined stats-card-icon" style={{ backgroundColor: '#f0fdf4', color: '#059669' }}>
               payments
@@ -90,7 +90,7 @@ function AbonnementStats() {
           <span className="metric-value">{stats.revenuTotal.toLocaleString('fr-FR')} FCFA</span>
         </div>
 
-        <div className="stats-card" style={{ borderLeft: '4px solid #1e40af' }}>
+        <div className="stats-card">
           <div className="stats-card-header">
             <span className="material-symbols-outlined stats-card-icon" style={{ backgroundColor: '#eff6ff', color: '#1e40af' }}>
               directions_bus
@@ -100,7 +100,7 @@ function AbonnementStats() {
           <span className="metric-value">{stats.voyagesConsommesTotal}</span>
         </div>
 
-        <div className="stats-card" style={{ borderLeft: '4px solid #b45309' }}>
+        <div className="stats-card">
           <div className="stats-card-header">
             <span className="material-symbols-outlined stats-card-icon" style={{ backgroundColor: '#fffbeb', color: '#b45309' }}>
               schedule

@@ -38,15 +38,22 @@ export const updateProfile = async (req, res) => {
 export const changePassword = async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
-    if (!oldPassword || !newPassword) {
+    const user = req.user;
+
+    // Mot de passe temporaire : la connexion avec ce mot de passe a déjà
+    // prouvé l'identité, on ne fait pas retaper l'utilisateur. Ce
+    // contournement ne s'applique qu'à ce cas précis (mustChangePassword),
+    // jamais à un changement de mot de passe volontaire depuis le profil.
+    const skipOldPasswordCheck = user.mustChangePassword;
+
+    if (!newPassword || (!skipOldPasswordCheck && !oldPassword)) {
       return res.status(400).json({ message: 'Ancien et nouveau mot de passe requis' });
     }
     if (newPassword.length < 8) {
       return res.status(400).json({ message: 'Le nouveau mot de passe doit contenir au moins 8 caractères' });
     }
 
-    const user = req.user;
-    if (!(await user.comparePassword(oldPassword))) {
+    if (!skipOldPasswordCheck && !(await user.comparePassword(oldPassword))) {
       return res.status(401).json({ message: 'Ancien mot de passe incorrect' });
     }
     if (await user.comparePassword(newPassword)) {

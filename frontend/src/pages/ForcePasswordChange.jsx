@@ -12,10 +12,8 @@ function ForcePasswordChange() {
   const navigate = useNavigate();
   const user = getStoredUser();
 
-  const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showOld, setShowOld] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
@@ -52,7 +50,7 @@ function ForcePasswordChange() {
 
     setIsLoading(true);
     try {
-      const data = await api.changePassword(oldPassword, newPassword);
+      const data = await api.changePassword(null, newPassword);
       setStoredUser(data.user);
       setSuccess(true);
       setTimeout(() => navigate('/', { replace: true }), 1000);
@@ -82,10 +80,9 @@ function ForcePasswordChange() {
           <div className="logo-badge">
             <span className="material-symbols-outlined logo-icon">lock_reset</span>
           </div>
-          <h1 className="login-title">Changement de mot de passe requis</h1>
+          <h1 className="login-title">Choisissez votre mot de passe</h1>
           <p className="login-subtitle">
-            Bonjour {user.prenom}. Pour des raisons de sécurité, vous devez remplacer votre mot de
-            passe temporaire avant d'accéder à la plateforme.
+            Bonjour {user.prenom}. Définissez votre mot de passe pour continuer.
           </p>
         </div>
 
@@ -104,35 +101,6 @@ function ForcePasswordChange() {
         )}
 
         <form onSubmit={handleSubmit} className="login-form" noValidate>
-          <div className="login-input-group">
-            <label htmlFor="temp-password" className="form-label">Mot de passe temporaire<span className="required-mark">*</span></label>
-            <div className={`login-input-wrapper ${focusedField === 'old' ? 'focused' : ''}`}>
-              <span className="material-symbols-outlined login-input-icon">lock</span>
-              <input
-                id="temp-password"
-                type={showOld ? 'text' : 'password'}
-                value={oldPassword}
-                onChange={(e) => setOldPassword(e.target.value)}
-                onFocus={() => setFocusedField('old')}
-                onBlur={() => setFocusedField(null)}
-                disabled={isLoading || success}
-                className="login-input-field"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowOld((v) => !v)}
-                className="login-eye-btn"
-                aria-label={showOld ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
-                disabled={isLoading || success}
-              >
-                <span className="material-symbols-outlined login-eye-icon">
-                  {showOld ? 'visibility_off' : 'visibility'}
-                </span>
-              </button>
-            </div>
-          </div>
-
           <div className="login-input-group">
             <label htmlFor="new-password" className="form-label">Nouveau mot de passe<span className="required-mark">*</span></label>
             <div className={`login-input-wrapper ${focusedField === 'new' ? 'focused' : ''}`}>
@@ -194,7 +162,7 @@ function ForcePasswordChange() {
           </div>
 
           <p className="login-subtitle" style={{ textAlign: 'left' }}>
-            8 caractères minimum, différent du mot de passe temporaire.
+            8 caractères minimum.
           </p>
 
           <button type="submit" disabled={isLoading || success} className="login-submit-btn">
