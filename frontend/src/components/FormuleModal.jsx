@@ -77,6 +77,7 @@ function FormuleModal({ isOpen, formule, onClose, onSave }) {
             <input
               type="text"
               required
+              autoFocus
               value={form.nom}
               onChange={(e) => setForm({ ...form, nom: e.target.value })}
               className="form-input"
@@ -85,29 +86,25 @@ function FormuleModal({ isOpen, formule, onClose, onSave }) {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Description</label>
-            <input
-              type="text"
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="form-input"
-              placeholder="Ex: Valable 30 jours"
-            />
-          </div>
-
-          <div className="form-group">
             <label className="form-label">Type<span className="required-mark">*</span></label>
-            <select
-              value={form.type}
-              onChange={(e) => handleTypeChange(e.target.value)}
-              className="form-select"
-              disabled={isEditing}
-              title={isEditing ? 'Le type ne peut pas être modifié après création' : undefined}
-            >
-              <option value="TICKET_SIMPLE">Ticket simple</option>
-              <option value="LIMITE">Limité (nombre de voyages)</option>
-              <option value="ILLIMITE">Illimité</option>
-            </select>
+            <div className="choice-group" role="group" aria-label="Type de formule">
+              {[
+                { value: 'TICKET_SIMPLE', label: 'Ticket simple' },
+                { value: 'LIMITE', label: 'Nombre de voyages' },
+                { value: 'ILLIMITE', label: 'Illimité' },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`choice-btn${form.type === option.value ? ' selected' : ''}`}
+                  onClick={() => handleTypeChange(option.value)}
+                  disabled={isEditing}
+                  title={isEditing ? 'Le type ne peut pas être modifié après création' : undefined}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="modal-grid">
@@ -135,22 +132,31 @@ function FormuleModal({ isOpen, formule, onClose, onSave }) {
                 placeholder="30"
               />
             </div>
-          </div>
-
-          {form.type === 'LIMITE' && (
+            {form.type === 'LIMITE' && (
+              <div className="form-group">
+                <label className="form-label">Nombre de voyages<span className="required-mark">*</span></label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  value={form.nombreVoyages}
+                  onChange={(e) => setForm({ ...form, nombreVoyages: e.target.value })}
+                  className="form-input"
+                  placeholder="20"
+                />
+              </div>
+            )}
             <div className="form-group">
-              <label className="form-label">Nombre de voyages<span className="required-mark">*</span></label>
+              <label className="form-label">Description</label>
               <input
-                type="number"
-                required
-                min="1"
-                value={form.nombreVoyages}
-                onChange={(e) => setForm({ ...form, nombreVoyages: e.target.value })}
+                type="text"
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
                 className="form-input"
-                placeholder="20"
+                placeholder="Ex: Valable 30 jours"
               />
             </div>
-          )}
+          </div>
 
           <div className="modal-footer">
             <button type="button" className="btn-secondary" onClick={onClose}>

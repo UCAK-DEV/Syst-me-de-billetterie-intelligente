@@ -17,14 +17,14 @@ function ImportCsvModal({ isOpen, onClose, onImport, successMessage, errors = []
     <div className="modal-overlay">
       <div className="modal-panel">
         <div className="modal-header">
-          <h2 className="modal-title">Importation massive d'utilisateurs</h2>
+          <h2 className="modal-title">Importer une liste d'utilisateurs</h2>
           <button className="modal-close-btn" onClick={onClose}>
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>
         <form onSubmit={handleSubmit} className="modal-form">
           <p className="modal-helper-text">
-            Importez des comptes en masse. Le fichier CSV doit comporter les en-têtes suivants : 
+            Ajoutez plusieurs comptes d'un coup depuis un fichier CSV. Le fichier doit comporter les colonnes suivantes :
             <code> nom,prenom,email,telephone,role</code>
           </p>
 

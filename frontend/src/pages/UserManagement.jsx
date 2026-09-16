@@ -4,6 +4,7 @@ import CreateUserModal from '../components/CreateUserModal';
 import EditUserModal from '../components/EditUserModal';
 import ImportCsvModal from '../components/ImportCsvModal';
 import StatCard from '../components/StatCard';
+import ConfirmDialog from '../components/ConfirmDialog';
 import './UserManagement.css';
 
 function UserManagement() {
@@ -31,6 +32,10 @@ function UserManagement() {
 
   // Renvoi du lien de confirmation : message temporaire, pas de banner permanent
   const [resendMessage, setResendMessage] = useState(null);
+
+  // Popup de confirmation avant toute action difficile à annuler
+  // (suppression, blocage). { title, message, danger, onConfirm } ou null.
+  const [confirmDialog, setConfirmDialog] = useState(null);
 
   // SEO updates
   useEffect(() => {
@@ -151,8 +156,7 @@ function UserManagement() {
   };
 
   // Bulk Actions
-  const handleBulkAction = async (action) => {
-    if (selectedUserIds.length === 0) return;
+  const runBulkAction = async (action) => {
     try {
       await api.bulkStatus(selectedUserIds, action);
       fetchUsers();
@@ -162,9 +166,35 @@ function UserManagement() {
     }
   };
 
+  const handleBulkAction = (action) => {
+    if (selectedUserIds.length === 0) return;
+    const n = selectedUserIds.length;
+
+    if (action === 'Supprimé') {
+      setConfirmDialog({
+        title: 'Supprimer ces comptes ?',
+        message: `${n} compte(s) seront déplacés dans la corbeille. Vous pourrez les restaurer plus tard.`,
+        confirmLabel: 'Supprimer',
+        danger: true,
+        onConfirm: () => runBulkAction(action),
+      });
+      return;
+    }
+    if (action === 'Bloqué' && !isTrashView) {
+      setConfirmDialog({
+        title: 'Bloquer ces comptes ?',
+        message: `${n} compte(s) perdront immédiatement l'accès à la plateforme.`,
+        confirmLabel: 'Bloquer',
+        danger: true,
+        onConfirm: () => runBulkAction(action),
+      });
+      return;
+    }
+    runBulkAction(action);
+  };
+
   // Single User Actions
-  const handleToggleStatus = async (id, currentStatus) => {
-    const nextStatus = currentStatus === 'Actif' ? 'Bloqué' : 'Actif';
+  const setUserStatus = async (id, nextStatus) => {
     try {
       await api.updateUserStatus(id, nextStatus);
       fetchUsers();
@@ -173,13 +203,35 @@ function UserManagement() {
     }
   };
 
-  const handleDeleteUser = async (id) => {
-    try {
-      await api.deleteUser(id);
-      fetchUsers();
-    } catch (err) {
-      console.error("Échec de suppression via API", err);
+  const handleToggleStatus = (id, currentStatus, userName) => {
+    if (currentStatus === 'Actif') {
+      setConfirmDialog({
+        title: 'Bloquer ce compte ?',
+        message: `${userName} perdra immédiatement l'accès à la plateforme.`,
+        confirmLabel: 'Bloquer',
+        danger: true,
+        onConfirm: () => setUserStatus(id, 'Bloqué'),
+      });
+      return;
     }
+    setUserStatus(id, 'Actif');
+  };
+
+  const handleDeleteUser = (id, userName) => {
+    setConfirmDialog({
+      title: 'Supprimer ce compte ?',
+      message: `${userName} sera déplacé dans la corbeille. Vous pourrez le restaurer plus tard.`,
+      confirmLabel: 'Supprimer',
+      danger: true,
+      onConfirm: async () => {
+        try {
+          await api.deleteUser(id);
+          fetchUsers();
+        } catch (err) {
+          console.error("Échec de suppression via API", err);
+        }
+      },
+    });
   };
 
   // Restaure un compte Supprimé vers Bloqué (pas Actif : la restauration ne
@@ -283,11 +335,11 @@ function UserManagement() {
           <div className="action-button-group">
             <button className="btn-secondary" onClick={() => setIsImportModalOpen(true)}>
               <span className="material-symbols-outlined btn-icon">upload_file</span>
-              Importer CSV
+              Importer une liste
             </button>
             <button className="btn-primary" onClick={() => setIsCreateModalOpen(true)}>
               <span className="material-symbols-outlined btn-icon">person_add</span>
-              Ajouter Individuel
+              Ajouter un utilisateur
             </button>
           </div>
         </section>
@@ -314,43 +366,49 @@ function UserManagement() {
           </div>
 
           <div className="filter-dropdowns">
-            <div className="filter-dropdown-item">
-              <label className="filter-label">Rôle</label>
-              <select 
-                value={roleFilter} 
-                onChange={(e) => setRoleFilter(e.target.value)} 
-                className="filter-select"
-              >
-                <option value="Tous">Tous les rôles</option>
-                <option value="Administrateur">Administrateurs</option>
-                <option value="Agent">Agents</option>
-                <option value="Client">Clients</option>
-              </select>
+            <div className="filter-chip-group" role="group" aria-label="Filtrer par rôle">
+              {[
+                { value: 'Tous', label: 'Tous les rôles' },
+                { value: 'Administrateur', label: 'Administrateurs' },
+                { value: 'Agent', label: 'Agents' },
+                { value: 'Client', label: 'Clients' },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`filter-chip${roleFilter === option.value ? ' selected' : ''}`}
+                  onClick={() => setRoleFilter(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
             </div>
 
-            <div className="filter-dropdown-item">
-              <label className="filter-label">Statut</label>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="filter-select"
+            <div className="filter-chip-group" role="group" aria-label="Filtrer par statut">
+              {[
+                { value: 'Tous', label: 'Tous les statuts' },
+                { value: 'Actif', label: 'Actifs' },
+                { value: 'Bloqué', label: 'Bloqués' },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`filter-chip${statusFilter === option.value ? ' selected' : ''}`}
+                  onClick={() => setStatusFilter(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
+              <button
+                type="button"
+                className={`filter-chip${isTrashView ? ' selected danger' : ''}`}
+                onClick={() => setStatusFilter(isTrashView ? 'Tous' : 'Supprimé')}
+                title="Voir les comptes supprimés"
               >
-                <option value="Tous">Tous les statuts</option>
-                <option value="Actif">Actifs</option>
-                <option value="Bloqué">Bloqués</option>
-                <option value="Supprimé">Supprimés</option>
-              </select>
+                <span className="material-symbols-outlined" style={{ fontSize: '14px', verticalAlign: 'text-bottom', marginRight: '0.25rem' }}>delete</span>
+                Corbeille ({globalStats.supprime})
+              </button>
             </div>
-
-            <button
-              type="button"
-              className={`trash-toggle-btn${isTrashView ? ' active' : ''}`}
-              onClick={() => setStatusFilter(isTrashView ? 'Tous' : 'Supprimé')}
-              title="Voir les comptes supprimés"
-            >
-              <span className="material-symbols-outlined btn-icon">delete</span>
-              Corbeille ({globalStats.supprime})
-            </button>
           </div>
         </section>
 
@@ -473,7 +531,7 @@ function UserManagement() {
                                 </button>
                                 <button
                                   className="icon-btn"
-                                  onClick={() => handleToggleStatus(user.id, user.status)}
+                                  onClick={() => handleToggleStatus(user.id, user.status, `${user.prenom} ${user.nom}`)}
                                   title={user.status === 'Actif' ? 'Bloquer le compte' : 'Activer le compte'}
                                 >
                                   <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#475569' }}>
@@ -482,7 +540,7 @@ function UserManagement() {
                                 </button>
                                 <button
                                   className="icon-btn"
-                                  onClick={() => handleDeleteUser(user.id)}
+                                  onClick={() => handleDeleteUser(user.id, `${user.prenom} ${user.nom}`)}
                                   title="Supprimer l'utilisateur"
                                 >
                                   <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#ef4444' }}>
@@ -590,6 +648,20 @@ function UserManagement() {
         onImport={handleCsvImport}
         successMessage={csvSuccessMessage}
         errors={csvErrors}
+      />
+
+      {/* POPUP DE CONFIRMATION */}
+      <ConfirmDialog
+        open={!!confirmDialog}
+        title={confirmDialog?.title}
+        message={confirmDialog?.message}
+        confirmLabel={confirmDialog?.confirmLabel}
+        danger={confirmDialog?.danger}
+        onCancel={() => setConfirmDialog(null)}
+        onConfirm={() => {
+          confirmDialog?.onConfirm();
+          setConfirmDialog(null);
+        }}
       />
     </>
   );

@@ -275,14 +275,6 @@ body {
   border-color: #cbd5e1;
 }
 
-/* Accent par catégorie : reprend les couleurs déjà utilisées pour les
-   badges de rôle dans le tableau, pour que le dashboard et le tableau
-   parlent le même langage visuel. */
-.stats-card--global { border-left: 4px solid var(--primary-color); }
-.stats-card--admin { border-left: 4px solid #1e40af; }
-.stats-card--agent { border-left: 4px solid #166534; }
-.stats-card--client { border-left: 4px solid #6b21a8; }
-
 .stats-card-header {
   display: flex;
   align-items: center;
@@ -373,6 +365,80 @@ body {
   border-color: #cbd5e1;
   background-color: #ffffff;
   box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.08);
+}
+
+/* Sélecteur à choix visuels (ex. type de formule) : un clic direct au lieu
+   d'ouvrir puis choisir dans un menu déroulant. */
+.choice-group {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.choice-btn {
+  flex: 1;
+  min-width: 130px;
+  padding: 0.65rem 0.75rem;
+  background-color: #eff3ff;
+  border: 2px solid transparent;
+  border-radius: 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.choice-btn:hover:not(:disabled) {
+  background-color: #e0e7ff;
+}
+
+.choice-btn.selected {
+  background-color: var(--primary-color);
+  color: #ffffff;
+}
+
+.choice-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Variante compacte du même principe, pour les filtres (rôle, statut, type) :
+   un clic direct sur la valeur voulue plutôt qu'ouvrir un menu déroulant. */
+.filter-chip-group {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filter-chip {
+  padding: 0.5rem 0.9rem;
+  background-color: #ffffff;
+  border: 1.5px solid var(--border-glass);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.filter-chip:hover {
+  border-color: #cbd5e1;
+  color: var(--text-dark);
+}
+
+.filter-chip.selected {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #ffffff;
+}
+
+.filter-chip.selected.danger {
+  background-color: #ef4444;
+  border-color: #ef4444;
 }
 
 .filter-select {

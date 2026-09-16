@@ -138,26 +138,42 @@ function AbonnementsManagement() {
           </div>
 
           <div className="filter-dropdowns">
-            <div className="filter-dropdown-item">
-              <label className="filter-label">Type</label>
-              <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="filter-select">
-                <option value="Tous">Tous les types</option>
-                <option value="TICKET_SIMPLE">Ticket simple</option>
-                <option value="LIMITE">Limité</option>
-                <option value="ILLIMITE">Illimité</option>
-              </select>
+            <div className="filter-chip-group" role="group" aria-label="Filtrer par type">
+              {[
+                { value: 'Tous', label: 'Tous les types' },
+                { value: 'TICKET_SIMPLE', label: 'Ticket simple' },
+                { value: 'LIMITE', label: 'Limité' },
+                { value: 'ILLIMITE', label: 'Illimité' },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`filter-chip${typeFilter === option.value ? ' selected' : ''}`}
+                  onClick={() => setTypeFilter(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
             </div>
 
-            <div className="filter-dropdown-item">
-              <label className="filter-label">Statut</label>
-              <select value={statutFilter} onChange={(e) => setStatutFilter(e.target.value)} className="filter-select">
-                <option value="Tous">Tous les statuts</option>
-                <option value="ACTIF">Actif</option>
-                <option value="SUSPENDU">Suspendu</option>
-                <option value="EXPIRE">Expiré</option>
-                <option value="EPUISE">Épuisé</option>
-                <option value="RESILIE">Résilié</option>
-              </select>
+            <div className="filter-chip-group" role="group" aria-label="Filtrer par statut">
+              {[
+                { value: 'Tous', label: 'Tous les statuts' },
+                { value: 'ACTIF', label: 'Actif' },
+                { value: 'SUSPENDU', label: 'Suspendu' },
+                { value: 'EXPIRE', label: 'Expiré' },
+                { value: 'EPUISE', label: 'Épuisé' },
+                { value: 'RESILIE', label: 'Résilié' },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`filter-chip${statutFilter === option.value ? ' selected' : ''}`}
+                  onClick={() => setStatutFilter(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
             </div>
           </div>
         </section>

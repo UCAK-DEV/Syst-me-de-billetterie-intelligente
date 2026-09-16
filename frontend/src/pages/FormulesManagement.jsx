@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getFormules, createFormule, updateFormule, setFormuleActive } from '../services/apiAbonnements';
 import FormuleModal from '../components/FormuleModal';
+import ConfirmDialog from '../components/ConfirmDialog';
 import './UserManagement.css';
 
 const TYPE_LABELS = {
@@ -20,6 +21,7 @@ function FormulesManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingFormule, setEditingFormule] = useState(null);
   const [error, setError] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState(null);
 
   useEffect(() => {
     document.title = 'Formules d\'abonnement - Système de Billetterie';
@@ -71,13 +73,27 @@ function FormulesManagement() {
     }
   };
 
-  const handleToggleActive = async (formule) => {
+  const runToggleActive = async (formule) => {
     try {
       await setFormuleActive(formule.id, !formule.actif);
       fetchFormules();
     } catch (err) {
       console.error('Échec du changement de statut de la formule', err);
     }
+  };
+
+  const handleToggleActive = (formule) => {
+    if (formule.actif) {
+      setConfirmDialog({
+        title: 'Retirer cette formule du catalogue ?',
+        message: `"${formule.nom}" ne sera plus proposée aux nouveaux clients. Les abonnements déjà souscrits ne sont pas affectés.`,
+        confirmLabel: 'Désactiver',
+        danger: true,
+        onConfirm: () => runToggleActive(formule),
+      });
+      return;
+    }
+    runToggleActive(formule);
   };
 
   return (
@@ -119,23 +135,39 @@ function FormulesManagement() {
           </div>
 
           <div className="filter-dropdowns">
-            <div className="filter-dropdown-item">
-              <label className="filter-label">Type</label>
-              <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="filter-select">
-                <option value="Tous">Tous les types</option>
-                <option value="TICKET_SIMPLE">Ticket simple</option>
-                <option value="LIMITE">Limité</option>
-                <option value="ILLIMITE">Illimité</option>
-              </select>
+            <div className="filter-chip-group" role="group" aria-label="Filtrer par type">
+              {[
+                { value: 'Tous', label: 'Tous les types' },
+                { value: 'TICKET_SIMPLE', label: 'Ticket simple' },
+                { value: 'LIMITE', label: 'Limité' },
+                { value: 'ILLIMITE', label: 'Illimité' },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`filter-chip${typeFilter === option.value ? ' selected' : ''}`}
+                  onClick={() => setTypeFilter(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
             </div>
 
-            <div className="filter-dropdown-item">
-              <label className="filter-label">Statut</label>
-              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="filter-select">
-                <option value="Tous">Tous les statuts</option>
-                <option value="Actif">Actives</option>
-                <option value="Inactif">Inactives</option>
-              </select>
+            <div className="filter-chip-group" role="group" aria-label="Filtrer par statut">
+              {[
+                { value: 'Tous', label: 'Tous les statuts' },
+                { value: 'Actif', label: 'Actives' },
+                { value: 'Inactif', label: 'Inactives' },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`filter-chip${statusFilter === option.value ? ' selected' : ''}`}
+                  onClick={() => setStatusFilter(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
             </div>
           </div>
         </section>
@@ -233,6 +265,19 @@ function FormulesManagement() {
         formule={editingFormule}
         onClose={() => setEditingFormule(null)}
         onSave={handleUpdateFormule}
+      />
+
+      <ConfirmDialog
+        open={!!confirmDialog}
+        title={confirmDialog?.title}
+        message={confirmDialog?.message}
+        confirmLabel={confirmDialog?.confirmLabel}
+        danger={confirmDialog?.danger}
+        onCancel={() => setConfirmDialog(null)}
+        onConfirm={() => {
+          confirmDialog?.onConfirm();
+          setConfirmDialog(null);
+        }}
       />
     </>
   );
