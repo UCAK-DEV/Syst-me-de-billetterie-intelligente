@@ -21,7 +21,7 @@ function App() {
 
         {/* Admin Dashboard Protected Layout */}
         <Route path="/" element={<DashboardLayout />}>
-          <Route index element={<Navigate to="/users" replace />} />
+          <Route index element={<Navigate to="/stats" replace />} />
           <Route path="users" element={<UserManagement />} />
           <Route path="formules" element={<FormulesManagement />} />
           <Route path="abonnements" element={<AbonnementsManagement />} />
