@@ -184,11 +184,13 @@ describe('API — Droit à voyager', () => {
     assert.equal(res.body.abonnement.dateExpiration, dans(2));
   });
 
-  test('ouvre la vérification aux agents mais pas aux clients', async () => {
+  test('ouvre la vérification aux agents, à soi-même, mais pas à un autre client', async () => {
     const client = identifiantClient(1);
     // Le contrôle se fait sur le terrain : c'est l'agent qui scanne.
     await request(app).get(`${VALIDITE}/${client}`).set({ Authorization: jetonPour('Agent') }).expect(200);
-    // Un client ne doit pas pouvoir interroger la situation d'un autre.
+    // Un client peut consulter son propre abonnement...
+    await request(app).get(`${VALIDITE}/${client}`).set({ Authorization: jetonPour('Client', client) }).expect(200);
+    // ...mais pas interroger la situation d'un autre.
     await request(app).get(`${VALIDITE}/${client}`).set({ Authorization: jetonPour('Client') }).expect(403);
     await request(app).get(`${VALIDITE}/${client}`).expect(401);
   });

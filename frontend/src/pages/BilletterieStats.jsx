@@ -76,7 +76,12 @@ function BilletterieStats() {
 
       <section className="stats-grid">
         <div className="stats-card">
-          <span className="metric-label">Titres émis</span>
+          <div className="stats-card-header">
+            <span className="material-symbols-outlined stats-card-icon" style={{ backgroundColor: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5' }}>
+              confirmation_number
+            </span>
+            <h3 className="stats-card-title">Titres émis</h3>
+          </div>
           <span className="metric-value">{stats.totalTitres}</span>
           <div className="metric-detail">
             Actifs : {stats.titresParStatut.ACTIF} · Consommés : {stats.titresParStatut.CONSOMME}
@@ -84,19 +89,34 @@ function BilletterieStats() {
         </div>
 
         <div className="stats-card">
-          <span className="metric-label">Validations totales</span>
+          <div className="stats-card-header">
+            <span className="material-symbols-outlined stats-card-icon" style={{ backgroundColor: '#eff6ff', color: '#1e40af' }}>
+              qr_code_scanner
+            </span>
+            <h3 className="stats-card-title">Validations totales</h3>
+          </div>
           <span className="metric-value">{stats.totalValidations}</span>
           <div className="metric-detail">Aujourd'hui : {stats.validationsAujourdhui} contrôle(s)</div>
         </div>
 
         <div className="stats-card">
-          <span className="metric-label">Voyages autorisés</span>
+          <div className="stats-card-header">
+            <span className="material-symbols-outlined stats-card-icon" style={{ backgroundColor: '#f0fdf4', color: '#059669' }}>
+              check_circle
+            </span>
+            <h3 className="stats-card-title">Voyages autorisés</h3>
+          </div>
           <span className="metric-value status-actif">{stats.autorises}</span>
           <div className="metric-detail">Taux d'autorisation : {stats.tauxSucces}%</div>
         </div>
 
         <div className="stats-card">
-          <span className="metric-label">Voyages refusés</span>
+          <div className="stats-card-header">
+            <span className="material-symbols-outlined stats-card-icon" style={{ backgroundColor: '#fef2f2', color: '#b91c1c' }}>
+              block
+            </span>
+            <h3 className="stats-card-title">Voyages refusés</h3>
+          </div>
           <span className="metric-value status-supprime">{stats.refuses}</span>
           <div className="metric-detail">Taux de rejet : {tauxRejet}%</div>
         </div>

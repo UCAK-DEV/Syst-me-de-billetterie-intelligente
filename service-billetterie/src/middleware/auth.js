@@ -46,3 +46,18 @@ export const isAgentOrAdmin = (req, res, next) => {
   }
   next();
 };
+
+/**
+ * Autorise les agents, les administrateurs, ET un client consultant SES
+ * PROPRES titres uniquement (jamais ceux d'un autre passager).
+ */
+export const isSelfOrStaff = (req, res, next) => {
+  const { id, role } = req.user || {};
+  if (role === 'Administrateur' || role === 'Agent') {
+    return next();
+  }
+  if (role === 'Client' && id === req.params.utilisateurId) {
+    return next();
+  }
+  return res.status(403).json({ message: 'Accès réservé à son propre compte, aux agents et aux administrateurs' });
+};

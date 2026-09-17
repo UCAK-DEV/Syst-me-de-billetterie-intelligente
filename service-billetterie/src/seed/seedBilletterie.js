@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { sequelize, TitreTransport, Validation, AuditLog } from '../models/index.js';
+import { sequelize, TitreTransport, Validation } from '../models/index.js';
 import { genererTokenUnique, genererQRCodeImage } from '../services/qrCodeService.js';
 import logger from '../config/logger.js';
 
@@ -11,12 +11,10 @@ const seedBilletterie = async () => {
 
     // Nettoyage préalable pour seed propre
     await Validation.destroy({ where: {}, truncate: true, cascade: true });
-    await AuditLog.destroy({ where: {}, truncate: true, cascade: true });
     await TitreTransport.destroy({ where: {}, truncate: true, cascade: true });
 
     logger.info('Tables réinitialisées. Génération des données de démonstration...');
 
-    const adminId = '6a5b68fc8be4efac6e1a775e';
     const agentId = '6a5b68fc8be4efac6e1a7799';
     const client1 = '6a5b68fc8be4efac6e1a7001';
     const client2 = '6a5b68fc8be4efac6e1a7002';
@@ -110,40 +108,6 @@ const seedBilletterie = async () => {
       motifRefus: 'QR_CODE_DESACTIVE',
       dateValidation: todayStr,
       heureValidation: '09:20:05',
-    });
-
-    // 4. Audits de démonstration
-    await AuditLog.create({
-      utilisateurId: adminId,
-      role: 'Administrateur',
-      action: 'GENERATION_TITRE',
-      ressourceType: 'TITRE',
-      ressourceId: ticket1.id,
-      resultat: 'SUCCES',
-      details: { typeTitre: 'TICKET_SIMPLE', utilisateurId: client1 },
-      ipAdresse: '127.0.0.1',
-    });
-
-    await AuditLog.create({
-      utilisateurId: adminId,
-      role: 'Administrateur',
-      action: 'DESACTIVATION_TITRE',
-      ressourceType: 'TITRE',
-      ressourceId: titreAbo2.id,
-      resultat: 'SUCCES',
-      details: { ancienStatut: 'ACTIF', nouveauStatut: 'DESACTIVE' },
-      ipAdresse: '127.0.0.1',
-    });
-
-    await AuditLog.create({
-      utilisateurId: agentId,
-      role: 'Agent',
-      action: 'SCAN_VALIDATION',
-      ressourceType: 'VALIDATION',
-      ressourceId: `VAL-${Date.now()}-0002`,
-      resultat: 'SUCCES',
-      details: { typeTitre: 'LIMITE', statut: 'AUTORISE' },
-      ipAdresse: '127.0.0.1',
     });
 
     logger.info('Seed Billetterie complété avec succès !');

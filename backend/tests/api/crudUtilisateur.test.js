@@ -124,17 +124,32 @@ describe('API — CRUD utilisateur (lecture unitaire et modification)', () => {
       assert.equal(rafraichi.role, 'Agent', 'le rôle doit rester inchangé');
     });
 
-    test('PUT /api/admin/users/:id — ignore une tentative de changement d\'e-mail', async () => {
-      // L'e-mail est la clé unique d'identification : il n'est pas modifiable ici.
+    test('PUT /api/admin/users/:id — permet de corriger l\'email, sous réserve d\'unicité', async () => {
       const user = await creerUtilisateur({ email: 'original@test.com' });
+      const autre = await creerUtilisateur({ email: 'dejapris@test.com' });
 
+      // Format invalide -> 400
       await request(app)
         .put(`/api/admin/users/${user.id}`)
         .set('Authorization', header)
-        .send({ email: 'usurpe@test.com', nom: 'Test' })
+        .send({ email: 'pas-un-email' })
+        .expect(400);
+
+      // Email déjà utilisé par un autre compte -> 409
+      await request(app)
+        .put(`/api/admin/users/${user.id}`)
+        .set('Authorization', header)
+        .send({ email: autre.email })
+        .expect(409);
+
+      // Correction valide -> acceptée et normalisée en minuscules
+      await request(app)
+        .put(`/api/admin/users/${user.id}`)
+        .set('Authorization', header)
+        .send({ email: 'CORRIGE@Test.com', nom: 'Test' })
         .expect(200);
 
-      assert.equal((await User.findById(user.id)).email, 'original@test.com');
+      assert.equal((await User.findById(user.id)).email, 'corrige@test.com');
     });
 
     test('PUT /api/admin/users/:id — ignore une tentative de changement de statut', async () => {

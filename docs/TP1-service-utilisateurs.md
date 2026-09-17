@@ -71,7 +71,7 @@ Hors périmètre pour ce TP : service Abonnements, service Billetterie/QR Code �
 | A20-A27 | Activation, blocage, suppression logique, actions groupées | API | Statuts appliqués, mots de passe régénérés seulement à l'activation |
 | A28 | Verrouillage tant que le mot de passe temporaire n'est pas changé | API | 403 puis 200 après changement |
 | A29-A34 | Import CSV (valide, doublon, lignes invalides, fichier non-CSV, sans auth) | API | Import partiel correct, erreurs détaillées ligne par ligne |
-| A35-A45 | CRUD complet sur un compte (lecture, modification, garde-fous sur email/statut/rôle) | API | Édition possible, mais email et statut restent protégés |
+| A35-A45 | CRUD complet sur un compte (lecture, modification, correction de l'email sous réserve d'unicité, garde-fou sur le statut) | API | Édition possible ; le statut reste protégé (routes d'activation dédiées) |
 
 ### Front — 22 tests unitaires (Jest, sur `validators.js`)
 

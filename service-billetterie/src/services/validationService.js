@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { sequelize, TitreTransport, Validation, AuditLog } from '../models/index.js';
+import { sequelize, TitreTransport, Validation } from '../models/index.js';
 import { extraireCodeUnique } from './qrCodeService.js';
 import { consommerVoyageAbonnement } from './interServices.js';
 import logger from '../config/logger.js';
@@ -31,7 +31,7 @@ const mapperMotifServiceAbonnements = (message) => {
  * Gère la concurrence par verrou pessimiste sur le titre (`LOCK.UPDATE`),
  * garantit l'idempotence des transactions et journalise l'historique complet.
  */
-export const validerScanQRCode = async ({ rawCode, agentId, agentRole, ipAdresse, token }) => {
+export const validerScanQRCode = async ({ rawCode, agentId, token }) => {
   const now = new Date();
   const dateStr = now.toISOString().split('T')[0];
   const heureStr = now.toTimeString().split(' ')[0];
@@ -214,21 +214,6 @@ export const validerScanQRCode = async ({ rawCode, agentId, agentRole, ipAdresse
         { transaction: t }
       );
 
-      // Audit de l'action de scan
-      await AuditLog.create(
-        {
-          utilisateurId: agentId,
-          role: agentRole || 'Agent',
-          action: 'SCAN_VALIDATION',
-          ressourceType: 'VALIDATION',
-          ressourceId: valId,
-          resultat: 'SUCCES',
-          details: { typeTitre: 'TICKET_SIMPLE', titreId: titre.id, statut: 'AUTORISE' },
-          ipAdresse,
-        },
-        { transaction: t }
-      );
-
       logger.info(`Scan autorisé : Ticket simple ${titre.id} consommé par agent ${agentId}`);
       return {
         autorise: true,
@@ -318,26 +303,6 @@ export const validerScanQRCode = async ({ rawCode, agentId, agentRole, ipAdresse
           motifRefus: null,
           dateValidation: dateStr,
           heureValidation: heureStr,
-        },
-        { transaction: t }
-      );
-
-      // Audit de l'opération
-      await AuditLog.create(
-        {
-          utilisateurId: agentId,
-          role: agentRole || 'Agent',
-          action: 'SCAN_VALIDATION',
-          ressourceType: 'VALIDATION',
-          ressourceId: valId,
-          resultat: 'SUCCES',
-          details: {
-            typeTitre: titre.typeTitre,
-            titreId: titre.id,
-            abonnementId: titre.abonnementId,
-            statut: 'AUTORISE',
-          },
-          ipAdresse,
         },
         { transaction: t }
       );

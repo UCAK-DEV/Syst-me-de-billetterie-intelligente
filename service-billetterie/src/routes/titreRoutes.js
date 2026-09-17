@@ -6,7 +6,7 @@ import {
   changerStatutTitre,
   getTitresParClient,
 } from '../controllers/titreController.js';
-import { protect, isAdmin, isAgentOrAdmin } from '../middleware/auth.js';
+import { protect, isAdmin, isAgentOrAdmin, isSelfOrStaff } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -14,7 +14,7 @@ router.use(protect);
 
 router.post('/', isAdmin, creerTitre);
 router.get('/', isAgentOrAdmin, listerTitres);
-router.get('/client/:utilisateurId', isAgentOrAdmin, getTitresParClient);
+router.get('/client/:utilisateurId', isSelfOrStaff, getTitresParClient);
 router.get('/:id', isAgentOrAdmin, getTitreById);
 router.patch('/:id/statut', isAdmin, changerStatutTitre);
 

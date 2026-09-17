@@ -67,3 +67,19 @@ export const isAdminOuAgent = (req, res, next) => {
   }
   return res.status(403).json({ message: 'Accès réservé aux administrateurs et aux agents' });
 };
+
+/**
+ * Autorise les administrateurs, les agents, ET un client consultant SON PROPRE
+ * identifiant uniquement — jamais celui d'un autre passager, ce qui préserve
+ * la raison d'être de la restriction ci-dessus (pas d'énumération de tiers).
+ */
+export const isSelfOuStaff = (req, res, next) => {
+  const { id, role } = req.utilisateur || {};
+  if (['Administrateur', 'Agent'].includes(role)) {
+    return next();
+  }
+  if (role === 'Client' && id === req.params.utilisateurId) {
+    return next();
+  }
+  return res.status(403).json({ message: 'Accès réservé à son propre compte, aux administrateurs et aux agents' });
+};

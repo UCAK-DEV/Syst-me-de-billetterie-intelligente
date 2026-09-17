@@ -11,7 +11,7 @@ import {
   creerTitreSimpleTest,
 } from '../helpers.js';
 
-describe('API — Audit et Tableau de bord / Statistiques', () => {
+describe('API — Tableau de bord / Statistiques', () => {
   before(async () => {
     await preparerBase();
   });
@@ -22,28 +22,6 @@ describe('API — Audit et Tableau de bord / Statistiques', () => {
 
   after(async () => {
     await fermerBase();
-  });
-
-  describe('Piste d’audit (GET /api/billetterie/audit)', () => {
-    it('enregistre et liste les audits des actions sensibles', async () => {
-      // Génère un titre via l'API (déclenche un audit)
-      await request(app)
-        .post('/api/billetterie/titres')
-        .set(enteteAdmin())
-        .send({ utilisateurId: '6a5b68fc8be4efac6e1a7001', typeTitre: 'TICKET_SIMPLE' });
-
-      const res = await request(app).get('/api/billetterie/audit').set(enteteAdmin());
-
-      assert.equal(res.status, 200);
-      assert.equal(Array.isArray(res.body), true);
-      assert.ok(res.body.length >= 1);
-      assert.equal(res.body[0].action, 'GENERATION_TITRE');
-    });
-
-    it('interdit l’accès à la piste d’audit aux agents', async () => {
-      const res = await request(app).get('/api/billetterie/audit').set(enteteAgent());
-      assert.equal(res.status, 403);
-    });
   });
 
   describe('Tableau de bord et Statistiques (GET /api/billetterie/dashboard/stats)', () => {

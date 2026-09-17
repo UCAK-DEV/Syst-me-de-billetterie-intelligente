@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { validateUserForm } from '../utils/validators';
 
-// L'email n'est pas modifiable ici : PUT /api/admin/users/:id ne l'accepte pas côté back
-// (identifiant de connexion figé après création).
 function EditUserModal({ isOpen, user, onClose, onSave }) {
   const [nom, setNom] = useState('');
   const [prenom, setPrenom] = useState('');
+  const [email, setEmail] = useState('');
   const [telephone, setTelephone] = useState('');
   const [role, setRole] = useState('Client');
   const [error, setError] = useState(null);
@@ -14,6 +13,7 @@ function EditUserModal({ isOpen, user, onClose, onSave }) {
     if (user) {
       setNom(user.nom || '');
       setPrenom(user.prenom || '');
+      setEmail(user.email || '');
       setTelephone(user.telephone || '');
       setRole(user.role || 'Client');
       setError(null);
@@ -25,7 +25,7 @@ function EditUserModal({ isOpen, user, onClose, onSave }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const validationError = validateUserForm({ nom, prenom, telephone }, { requireEmail: false });
+    const validationError = validateUserForm({ nom, prenom, email, telephone });
     if (validationError) {
       setError(validationError);
       return;
@@ -33,7 +33,7 @@ function EditUserModal({ isOpen, user, onClose, onSave }) {
 
     setError(null);
     try {
-      await onSave(user.id, { nom, prenom, telephone, role });
+      await onSave(user.id, { nom, prenom, email, telephone, role });
     } catch (err) {
       setError(err.message);
     }
@@ -75,8 +75,14 @@ function EditUserModal({ isOpen, user, onClose, onSave }) {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Adresse email</label>
-            <input type="email" value={user.email} className="form-input" disabled />
+            <label className="form-label">Adresse email<span className="required-mark">*</span></label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="form-input"
+            />
           </div>
 
           <div className="modal-grid">

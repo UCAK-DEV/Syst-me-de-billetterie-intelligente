@@ -92,7 +92,7 @@ export const getUserById = async (req, res) => {
 // PUT /api/admin/users/:id — Mettre à jour un utilisateur
 export const updateUser = async (req, res) => {
   try {
-    const { nom, prenom, telephone, role, photo } = req.body;
+    const { nom, prenom, email, telephone, role, photo } = req.body;
 
     // Une saisie invalide doit renvoyer 400, jamais une erreur serveur.
     if (role !== undefined && !ROLES.includes(role)) {
@@ -113,8 +113,27 @@ export const updateUser = async (req, res) => {
       }
     }
 
+    // L'email reste l'identifiant de connexion : on autorise la correction
+    // d'une erreur de saisie, avec le même garde-fou d'unicité que le
+    // téléphone. Le JWT ne porte que l'id et le rôle (jamais l'email), donc
+    // le changer n'invalide aucune session en cours.
+    let emailNormalise;
+    if (email !== undefined) {
+      emailNormalise = email.trim().toLowerCase();
+      if (!/\S+@\S+\.\S+/.test(emailNormalise)) {
+        return res.status(400).json({ message: 'Adresse email invalide' });
+      }
+      if (emailNormalise !== user.email) {
+        const emailPris = await User.findOne({ email: emailNormalise, _id: { $ne: user._id } });
+        if (emailPris) {
+          return res.status(409).json({ message: 'Un utilisateur avec cet email existe déjà' });
+        }
+      }
+    }
+
     if (nom !== undefined) user.nom = nom;
     if (prenom !== undefined) user.prenom = prenom;
+    if (emailNormalise !== undefined) user.email = emailNormalise;
     if (telephone !== undefined) user.telephone = telephone;
     if (role !== undefined) user.role = role;
     if (photo !== undefined) user.photo = photo;

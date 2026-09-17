@@ -11,6 +11,23 @@
   --text-muted: #64748b;
   --card-bg: #ffffff;
   --border-glass: #e2e8f0;
+  --body-bg: #f4f5f7;
+  --input-bg: #eff3ff;
+  --input-bg-focus: #ffffff;
+}
+
+/* Thème sombre — bascule manuelle (voir ThemeContext), variables
+   redéfinies pour garder un contraste suffisant partout, y compris
+   sur l'écran de scan (autorisé/refusé doivent rester lisibles). */
+[data-theme="dark"] {
+  --primary-light: #23263a;
+  --text-dark: #e4e6ee;
+  --text-muted: #8b8fa3;
+  --card-bg: #1b1e2c;
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --body-bg: #121420;
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --input-bg-focus: rgba(255, 255, 255, 0.09);
 }
 
 body {
@@ -18,7 +35,7 @@ body {
   padding: 0;
   font-family: var(--font-sans);
   color: var(--text-dark);
-  background-color: #f4f5f7;
+  background-color: var(--body-bg);
   overflow-x: hidden;
 }
 
@@ -31,7 +48,7 @@ body {
   width: 100vw;
   height: 100vh;
   z-index: -2;
-  background-color: #f4f5f7;
+  background-color: var(--body-bg);
 }
 
 .gemini-aura,
@@ -165,31 +182,41 @@ body {
   width: 100%;
 }
 
-.sidebar-footer-actions {
+.sidebar-theme-btn,
+.sidebar-logout-btn {
   display: flex;
-  gap: 0.4rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-.sidebar-icon-btn {
-  color: #a5a2d4;
+.sidebar-theme-btn {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #c7c5e6;
 }
 
-.sidebar-icon-btn:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+.sidebar-theme-btn:hover {
+  background-color: rgba(255, 255, 255, 0.12);
   color: #ffffff;
 }
 
-.sidebar-icon-btn.logout-btn {
-  margin-left: 0;
+.sidebar-logout-btn {
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  background-color: rgba(248, 113, 113, 0.12);
+  color: #fca5a5;
 }
 
-.sidebar-icon-btn.logout-btn::before {
-  display: none;
-}
-
-.sidebar-icon-btn.logout-btn:hover {
-  color: #f87171;
-  background-color: rgba(255, 255, 255, 0.08);
+.sidebar-logout-btn:hover {
+  background-color: rgba(248, 113, 113, 0.22);
+  border-color: rgba(248, 113, 113, 0.5);
+  color: #fecaca;
 }
 
 .sidebar-search-hint {
@@ -233,7 +260,7 @@ body {
 .command-palette {
   width: 100%;
   max-width: 520px;
-  background-color: #ffffff;
+  background-color: var(--card-bg);
   border-radius: 0.75rem;
   box-shadow: 0 20px 50px -12px rgba(15, 23, 42, 0.35);
   overflow: hidden;
@@ -259,7 +286,7 @@ body {
 .command-palette-kbd {
   font-size: 0.68rem;
   font-family: var(--font-sans);
-  background-color: #f1f5f9;
+  background-color: var(--input-bg);
   color: var(--text-muted);
   padding: 0.15rem 0.4rem;
   border-radius: 0.3rem;
@@ -309,15 +336,6 @@ body {
   color: #ffffff;
 }
 
-.sidebar-footer .logout-btn {
-  color: #a5a2d4;
-}
-
-.sidebar-footer .logout-btn:hover {
-  color: #f87171;
-  background-color: rgba(255, 255, 255, 0.08);
-}
-
 .app-content {
   flex: 1;
   min-width: 0;
@@ -362,8 +380,10 @@ body {
   width: auto;
 }
 
-.sidebar.collapsed .sidebar-footer-actions {
-  flex-direction: column;
+.sidebar.collapsed .sidebar-theme-btn,
+.sidebar.collapsed .sidebar-logout-btn {
+  width: auto;
+  padding: 0.55rem;
 }
 
 @media (max-width: 900px) {
@@ -395,7 +415,7 @@ body {
 
 .navbar {
   height: 64px;
-  background-color: #ffffff;
+  background-color: var(--card-bg);
   border-bottom: 1px solid var(--border-glass);
   padding: 0 2rem;
   display: grid;
@@ -487,7 +507,7 @@ body {
 }
 
 .nav-user-identity:hover {
-  background-color: #eff3ff;
+  background-color: var(--input-bg);
 }
 
 .nav-user-avatar {
@@ -510,32 +530,6 @@ body {
   font-size: 0.85rem;
   font-weight: 700;
   color: #312e81;
-}
-
-/* Séparé du groupe avatar+nom par une fine ligne (au lieu d'un simple
-   margin arbitraire), sans casser la forme circulaire de .icon-btn.
-   Neutre au repos, rouge seulement au survol : la déconnexion n'est
-   pas une action destructrice à signaler en rouge en permanence. */
-.logout-btn {
-  position: relative;
-  color: #94a3b8;
-  margin-left: 0.85rem;
-}
-
-.logout-btn::before {
-  content: '';
-  position: absolute;
-  left: -0.85rem;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 1px;
-  height: 20px;
-  background-color: var(--border-glass);
-}
-
-.logout-btn:hover {
-  color: #ef4444;
-  background-color: rgba(239, 68, 68, 0.08);
 }
 
 /* En dessous de 720px, la marque + les 2 onglets + le nom + le logout ne
@@ -604,7 +598,7 @@ body {
   font-family: 'Outfit', sans-serif;
   font-size: 2rem;
   font-weight: 900;
-  color: #1e1b4b;
+  color: var(--text-dark);
   letter-spacing: -0.03em;
   margin: 0;
 }
@@ -685,7 +679,7 @@ body {
 .stats-card-title {
   font-size: 0.8rem;
   font-weight: 800;
-  color: #64748b;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin: 0;
@@ -694,7 +688,7 @@ body {
 .metric-value {
   font-size: 1.65rem;
   font-weight: 900;
-  color: #1e1b4b;
+  color: var(--text-dark);
   font-family: var(--font-sans);
 }
 
@@ -705,7 +699,7 @@ body {
 .metric-label {
   font-size: 0.7rem;
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 /* Répartition Actifs/Bloqués/Supprimés en un coup d'œil */
@@ -731,7 +725,7 @@ body {
 /* Soft Styled M3 Inputs */
 .search-input, .form-input, .form-select, .filter-select {
   padding: 0.65rem 1rem;
-  background-color: #eff3ff;
+  background-color: var(--input-bg);
   border: 2px solid transparent;
   border-radius: 1rem;
   font-size: 0.85rem;
@@ -747,7 +741,7 @@ body {
 
 .search-input:focus, .form-input:focus, .form-select:focus, .filter-select:focus {
   border-color: #cbd5e1;
-  background-color: #ffffff;
+  background-color: var(--input-bg-focus);
   box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.08);
 }
 
@@ -763,7 +757,7 @@ body {
   flex: 1;
   min-width: 130px;
   padding: 0.65rem 0.75rem;
-  background-color: #eff3ff;
+  background-color: var(--input-bg);
   border: 2px solid transparent;
   border-radius: 0.75rem;
   font-size: 0.82rem;
@@ -774,7 +768,7 @@ body {
 }
 
 .choice-btn:hover:not(:disabled) {
-  background-color: #e0e7ff;
+  background-color: var(--input-bg-focus);
 }
 
 .choice-btn.selected {
@@ -798,7 +792,7 @@ body {
 
 .filter-chip {
   padding: 0.5rem 0.9rem;
-  background-color: #ffffff;
+  background-color: var(--card-bg);
   border: 1.5px solid var(--border-glass);
   border-radius: 999px;
   font-size: 0.78rem;
@@ -833,7 +827,7 @@ body {
   -webkit-appearance: none;
   -moz-appearance: none;
   cursor: pointer;
-  background-color: #ffffff;
+  background-color: var(--input-bg);
   border: 1.5px solid var(--border-glass);
   border-radius: 0.6rem;
   padding: 0.6rem 2.5rem 0.6rem 0.9rem;
@@ -854,7 +848,7 @@ body {
 .form-select:focus,
 .filter-select:focus {
   border-color: var(--primary-color);
-  background-color: #ffffff;
+  background-color: var(--input-bg-focus);
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
 }
 
@@ -922,8 +916,8 @@ body {
 }
 
 .table-header-row {
-  border-bottom: 1.5px solid rgba(79, 70, 229, 0.08);
-  background-color: rgba(79, 70, 229, 0.02);
+  border-bottom: 1.5px solid var(--border-glass);
+  background-color: transparent;
 }
 
 .table-header-th {
@@ -942,7 +936,7 @@ body {
 }
 
 .table-row:hover {
-  background-color: rgba(255, 255, 255, 0.4);
+  background-color: rgba(79, 70, 229, 0.06);
 }
 
 .table-td {
@@ -957,6 +951,11 @@ body {
   font-size: 0.8rem;
   font-weight: 700;
   color: #4f46e5;
+}
+
+.table-header-th-action, .table-td-action {
+  padding: 1.15rem 1rem;
+  text-align: right;
 }
 
 .user-avatar {
@@ -1021,7 +1020,7 @@ body {
 }
 
 .modal-panel {
-  background-color: #ffffff;
+  background-color: var(--card-bg);
   border: 1px solid var(--border-glass);
   border-radius: 0.75rem;
   width: 100%;
@@ -1042,7 +1041,7 @@ body {
   font-family: 'Outfit', sans-serif;
   font-size: 1.25rem;
   font-weight: 900;
-  color: #1e1b4b;
+  color: var(--text-dark);
 }
 
 .modal-close-btn {
@@ -1079,7 +1078,7 @@ body {
 .form-label {
   font-size: 0.8rem;
   font-weight: 700;
-  color: #312e81;
+  color: var(--text-dark);
 }
 
 .required-mark {
@@ -1089,7 +1088,7 @@ body {
 
 .form-hint {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--text-muted);
   margin: 0.2rem 0 0 0;
 }
 
@@ -1124,7 +1123,7 @@ body {
      interceptant les clics destinés aux boutons de la modale. */
   position: relative;
   border: 2px dashed #a5b4fc;
-  background-color: rgba(255, 255, 255, 0.4);
+  background-color: var(--input-bg);
   border-radius: 1.5rem;
   padding: 2.5rem 1.5rem;
   display: flex;
@@ -1227,11 +1226,12 @@ body {
 
   .action-button-group {
     width: 100%;
+    flex-wrap: wrap;
   }
 
   .action-button-group .btn-primary,
   .action-button-group .btn-secondary {
-    flex: 1;
+    flex: 1 1 100%;
     justify-content: center;
   }
 }
@@ -1306,7 +1306,7 @@ body {
   padding: 0.25rem;
   border: 1px solid var(--border-glass);
   border-radius: 0.75rem;
-  background-color: #ffffff;
+  background-color: var(--card-bg);
   max-height: 260px;
   overflow-y: auto;
 }
@@ -1329,7 +1329,7 @@ body {
 }
 
 .client-suggestion:hover {
-  background-color: #eff3ff;
+  background-color: var(--input-bg);
 }
 
 .client-selected {
@@ -1440,7 +1440,7 @@ body {
 .filter-label {
   font-size: 0.8rem;
   font-weight: 700;
-  color: #312e81;
+  color: var(--text-dark);
 }
 
 /* Checkbox & Table Customizations */
@@ -1478,7 +1478,7 @@ body {
 .user-name-text {
   font-size: 0.875rem;
   font-weight: 700;
-  color: #1e1b4b;
+  color: var(--text-dark);
 }
 
 .user-email-text {
@@ -1489,7 +1489,7 @@ body {
 
 .table-td-phone {
   font-weight: 600;
-  color: #475569;
+  color: var(--text-muted);
 }
 
 .table-td-date {
@@ -1633,7 +1633,7 @@ body {
 
 .dropzone-text {
   font-size: 0.85rem;
-  color: #475569;
+  color: var(--text-dark);
   font-weight: 700;
   text-align: center;
   margin: 0;

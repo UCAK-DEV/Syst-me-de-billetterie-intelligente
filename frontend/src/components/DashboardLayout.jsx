@@ -2,10 +2,12 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { getStoredUser, clearAuth, api, photoUrl } from '../services/api';
 import CommandPalette from './CommandPalette';
+import { useTheme } from '../context/ThemeContext.jsx';
 import '../styles/dashboard.css';
 
 // Restrictions d'accès selon le rôle
 const AGENT_ALLOWED_PREFIXES = ['/scan', '/titres', '/validations', '/profile'];
+const CLIENT_ALLOWED_PREFIXES = ['/mes-titres', '/profile'];
 
 // Destinations de la palette de commandes (Ctrl+K), avec le rôle minimal
 // requis pour chacune. 'Client' couvre tout le monde : profil accessible
@@ -19,7 +21,7 @@ const COMMAND_ENTRIES = [
   { to: '/abonnements', icon: 'card_membership', label: 'Abonnements', role: 'Administrateur', keywords: 'souscription' },
   { to: '/formules', icon: 'receipt_long', label: 'Formules', role: 'Administrateur' },
   { to: '/users', icon: 'group', label: 'Utilisateurs', role: 'Administrateur', keywords: 'comptes clients agents' },
-  { to: '/audit', icon: 'shield', label: "Piste d'audit", role: 'Administrateur' },
+  { to: '/mes-titres', icon: 'confirmation_number', label: 'Mes titres', role: 'Client', keywords: 'qr code voyage' },
   { to: '/profile', icon: 'account_circle', label: 'Mon profil', role: 'Client' },
 ];
 
@@ -31,6 +33,7 @@ function DashboardLayout() {
   const location = useLocation();
   const currentPath = location.pathname;
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const [user, setUser] = useState(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(getStoredCollapsed);
@@ -63,8 +66,9 @@ function DashboardLayout() {
         navigate('/scan', { replace: true });
       }
     } else if (storedUser.role !== 'Administrateur') {
-      if (currentPath !== '/profile') {
-        navigate('/profile', { replace: true });
+      const allowed = CLIENT_ALLOWED_PREFIXES.some((prefix) => currentPath.startsWith(prefix));
+      if (!allowed) {
+        navigate('/mes-titres', { replace: true });
       }
     }
   }, [navigate, currentPath]);
@@ -84,6 +88,7 @@ function DashboardLayout() {
 
   const isAdmin = user?.role === 'Administrateur';
   const isAgent = user?.role === 'Agent';
+  const isClient = user?.role === 'Client';
 
   const paletteEntries = useMemo(() => {
     if (!user) return [];
@@ -94,7 +99,9 @@ function DashboardLayout() {
   const blockedForRole =
     !user ||
     (user.role === 'Agent' && !AGENT_ALLOWED_PREFIXES.some((p) => currentPath.startsWith(p))) ||
-    (user.role !== 'Administrateur' && user.role !== 'Agent' && currentPath !== '/profile');
+    (user.role !== 'Administrateur' &&
+      user.role !== 'Agent' &&
+      !CLIENT_ALLOWED_PREFIXES.some((p) => currentPath.startsWith(p)));
 
   const handleLogout = async () => {
     try {
@@ -158,6 +165,13 @@ function DashboardLayout() {
             </div>
           )}
 
+          {isClient && (
+            <div className="sidebar-section">
+              <span className="sidebar-section-title">Mon espace</span>
+              <NavLink to="/mes-titres" icon="confirmation_number" label="Mes titres" active={currentPath === '/mes-titres'} />
+            </div>
+          )}
+
           {isAdmin && (
             <>
               <div className="sidebar-section">
@@ -169,7 +183,6 @@ function DashboardLayout() {
               <div className="sidebar-section">
                 <span className="sidebar-section-title">Administration</span>
                 <NavLink to="/users" icon="group" label="Utilisateurs" active={currentPath === '/users'} />
-                <NavLink to="/audit" icon="shield" label="Piste d'audit" active={currentPath === '/audit'} />
               </div>
             </>
           )}
@@ -192,16 +205,29 @@ function DashboardLayout() {
               <span className="nav-user-name">{user.prenom} {user.nom}</span>
             </Link>
 
-            <div className="sidebar-footer-actions">
-              <button
-                onClick={handleLogout}
-                className="icon-btn sidebar-icon-btn logout-btn"
-                title="Se déconnecter"
-                aria-label="Se déconnecter"
-              >
-                <span className="material-symbols-outlined">logout</span>
-              </button>
-            </div>
+            <button
+              onClick={toggleTheme}
+              className="sidebar-theme-btn"
+              title={theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'}
+              aria-label={theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'}
+            >
+              <span className="material-symbols-outlined">
+                {theme === 'dark' ? 'light_mode' : 'dark_mode'}
+              </span>
+              <span className="sidebar-link-text">
+                {theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
+              </span>
+            </button>
+
+            <button
+              onClick={handleLogout}
+              className="sidebar-logout-btn"
+              title="Se déconnecter"
+              aria-label="Se déconnecter"
+            >
+              <span className="material-symbols-outlined">logout</span>
+              <span className="sidebar-link-text">Se déconnecter</span>
+            </button>
           </div>
         )}
       </aside>

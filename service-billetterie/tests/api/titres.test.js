@@ -10,7 +10,6 @@ import {
   enteteAgent,
   enteteClient,
   creerTitreSimpleTest,
-  AuditLog,
 } from '../helpers.js';
 
 describe('API — Gestion des Titres de Transport et QR Codes', () => {
@@ -42,11 +41,6 @@ describe('API — Gestion des Titres de Transport et QR Codes', () => {
       assert.equal(res.body.titre.typeTitre, 'TICKET_SIMPLE');
       assert.ok(res.body.titre.codeUnique.startsWith('TKT-'));
       assert.ok(res.body.titre.qrCodeData.startsWith('data:image/png;base64,'));
-
-      // Vérification de la piste d'audit
-      const audit = await AuditLog.findOne({ where: { ressourceId: res.body.titre.id } });
-      assert.ok(audit, "Une entrée d'audit doit être enregistrée");
-      assert.equal(audit.action, 'GENERATION_TITRE');
     });
 
     it('refuse la création sans identifiant utilisateur', async () => {
@@ -128,8 +122,41 @@ describe('API — Gestion des Titres de Transport et QR Codes', () => {
     });
   });
 
+  describe('Titres d’un client (GET /api/billetterie/titres/client/:utilisateurId)', () => {
+    it('autorise un client à consulter ses propres titres', async () => {
+      await creerTitreSimpleTest({ utilisateurId: '6a5b68fc8be4efac6e1a7001' });
+
+      const res = await request(app)
+        .get('/api/billetterie/titres/client/6a5b68fc8be4efac6e1a7001')
+        .set(enteteClient());
+
+      assert.equal(res.status, 200);
+      assert.equal(res.body.length, 1);
+    });
+
+    it('interdit à un client de consulter les titres d’un autre', async () => {
+      await creerTitreSimpleTest({ utilisateurId: '6a5b68fc8be4efac6e1a7002' });
+
+      const res = await request(app)
+        .get('/api/billetterie/titres/client/6a5b68fc8be4efac6e1a7002')
+        .set(enteteClient());
+
+      assert.equal(res.status, 403);
+    });
+
+    it('autorise les agents et administrateurs sur n’importe quel client', async () => {
+      await creerTitreSimpleTest({ utilisateurId: '6a5b68fc8be4efac6e1a7002' });
+
+      const res = await request(app)
+        .get('/api/billetterie/titres/client/6a5b68fc8be4efac6e1a7002')
+        .set(enteteAgent());
+
+      assert.equal(res.status, 200);
+    });
+  });
+
   describe('Activation et désactivation (PATCH /api/billetterie/titres/:id/statut)', () => {
-    it('désactive puis réactive un titre et trace l’action dans l’audit', async () => {
+    it('désactive puis réactive un titre', async () => {
       const titre = await creerTitreSimpleTest();
 
       // 1. Désactivation
@@ -149,12 +176,6 @@ describe('API — Gestion des Titres de Transport et QR Codes', () => {
 
       assert.equal(resReact.status, 200);
       assert.equal(resReact.body.titre.statut, 'ACTIF');
-
-      // Vérifier les 2 audits
-      const audits = await AuditLog.findAll({ where: { ressourceId: titre.id } });
-      assert.equal(audits.length, 2);
-      assert.ok(audits.some((a) => a.action === 'DESACTIVATION_TITRE'));
-      assert.ok(audits.some((a) => a.action === 'ACTIVATION_TITRE'));
     });
 
     it('refuse une valeur de statut arbitraire', async () => {

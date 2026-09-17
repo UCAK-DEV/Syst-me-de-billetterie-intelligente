@@ -16,7 +16,7 @@ export function isValidPhone(telephone) {
 }
 
 // Validation du formulaire utilisateur (CreateUserModal, EditUserModal, ProfileSettings).
-// requireEmail: false pour l'édition, où l'email est en lecture seule (non modifiable côté API).
+// requireEmail: false uniquement pour ProfileSettings, où l'email n'est pas dans ce formulaire.
 export function validateUserForm({ nom, prenom, email, telephone } = {}, { requireEmail = true } = {}) {
   if (!nom || !nom.trim()) {
     return 'Le nom est obligatoire.';

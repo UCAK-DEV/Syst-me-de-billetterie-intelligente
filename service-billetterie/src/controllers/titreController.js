@@ -1,5 +1,5 @@
 import { Op } from 'sequelize';
-import { TitreTransport, AuditLog } from '../models/index.js';
+import { TitreTransport } from '../models/index.js';
 import { genererTokenUnique, genererQRCodeImage } from '../services/qrCodeService.js';
 import { TYPES_TITRE, STATUTS_TITRE } from '../utils/constants.js';
 import logger from '../config/logger.js';
@@ -45,23 +45,6 @@ export const creerTitre = async (req, res) => {
       statut: 'ACTIF',
       dateCreation: new Date(),
       dateExpiration: dateExpiration || null,
-    });
-
-    // 4. Piste d'audit inviolable
-    await AuditLog.create({
-      utilisateurId: req.user.id,
-      role: req.user.role,
-      action: 'GENERATION_TITRE',
-      ressourceType: 'TITRE',
-      ressourceId: titre.id,
-      resultat: 'SUCCES',
-      details: {
-        codeUnique,
-        typeTitre,
-        utilisateurId,
-        abonnementId,
-      },
-      ipAdresse: req.ip || req.connection.remoteAddress,
     });
 
     logger.info(`Titre généré : ${titre.id} (${typeTitre}) pour le client ${utilisateurId}`);
@@ -137,18 +120,6 @@ export const changerStatutTitre = async (req, res) => {
     const ancienStatut = titre.statut;
     titre.statut = statut;
     await titre.save();
-
-    const action = statut === 'DESACTIVE' ? 'DESACTIVATION_TITRE' : 'ACTIVATION_TITRE';
-    await AuditLog.create({
-      utilisateurId: req.user.id,
-      role: req.user.role,
-      action,
-      ressourceType: 'TITRE',
-      ressourceId: titre.id,
-      resultat: 'SUCCES',
-      details: { ancienStatut, nouveauStatut: statut },
-      ipAdresse: req.ip || req.connection.remoteAddress,
-    });
 
     logger.info(`Statut titre #${titre.id} changé de ${ancienStatut} à ${statut} par ${req.user.id}`);
     return res.status(200).json({ titre });
