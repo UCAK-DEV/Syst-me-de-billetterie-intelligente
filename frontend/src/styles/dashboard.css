@@ -927,6 +927,11 @@ body {
   color: #4f46e5;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  text-align: left;
+  /* Chrome applique un fond gris clair par défaut aux <th> (feuille de
+     style utilisateur-agent) : sans cette ligne, il ressort en blanc
+     par-dessus n'importe quelle carte sombre. */
+  background-color: transparent;
 }
 
 .table-row {
@@ -956,6 +961,7 @@ body {
 .table-header-th-action, .table-td-action {
   padding: 1.15rem 1rem;
   text-align: right;
+  background-color: transparent;
 }
 
 .user-avatar {
@@ -1462,6 +1468,10 @@ body {
   width: 48px;
   padding-left: 1.5rem;
   padding-right: 0.5rem;
+}
+
+.table-header-th-checkbox {
+  background-color: transparent;
 }
 
 .table-responsive {
