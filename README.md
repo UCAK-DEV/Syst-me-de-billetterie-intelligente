@@ -90,6 +90,7 @@ Bases de données
 | PUT | /api/users/profile/password | connecté | changement de mot de passe |
 | PUT | /api/users/profile | connecté, mot de passe changé | modification des informations personnelles |
 | POST | /api/users/profile/photo | connecté, mot de passe changé | upload de la photo de profil |
+| GET | /api/users/lookup | administrateur, agent | identité minimale (nom, prénom, téléphone) de comptes, sans champs sensibles |
 | GET | /api/admin/dashboard/stats | administrateur | statistiques utilisateurs |
 | POST | /api/admin/users | administrateur | création d'un compte |
 | GET | /api/admin/users | administrateur | liste des comptes, recherche et filtres |
@@ -135,12 +136,12 @@ Bases de données
 
 ## Tests
 
-- Backend Service Utilisateurs : 81 tests, `node --test`
+- Backend Service Utilisateurs : 85 tests, `node --test`
 - Backend Service Abonnements : 75 tests, `node --test`
 - Backend Service Billetterie : 30 tests, `node --test` (incluant test de concurrence)
 - Frontend : 43 tests unitaires, `jest`
 
-Total : **229 tests automatisés**, tous passants.
+Total : **233 tests automatisés**, tous passants.
 
 ```bash
 # Lancer tous les tests du projet :

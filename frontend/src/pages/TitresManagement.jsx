@@ -43,22 +43,6 @@ function TitresManagement() {
   const currentUser = getStoredUser();
   const isAdmin = currentUser?.role === 'Administrateur';
 
-  // Charger le catalogue des clients pour afficher leur identité lisible
-  useEffect(() => {
-    api.getUsers({ limit: 100 })
-      .then((res) => {
-        const list = res.users || res;
-        if (Array.isArray(list)) {
-          const map = {};
-          list.forEach((c) => {
-            map[c.id] = c;
-          });
-          setClients(map);
-        }
-      })
-      .catch(() => {});
-  }, []);
-
   const loadTitres = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -68,7 +52,21 @@ function TitresManagement() {
         typeTitre: typeFilter,
         recherche: search,
       });
-      setTitres(Array.isArray(data) ? data : []);
+      const list = Array.isArray(data) ? data : [];
+      setTitres(list);
+
+      // Identité lisible des clients concernés — accessible aux agents,
+      // contrairement à la liste complète des comptes (réservée aux admins).
+      const ids = [...new Set(list.map((t) => t.utilisateurId))];
+      if (ids.length > 0) {
+        api.lookupUsers(ids)
+          .then((res) => {
+            const map = {};
+            (res.users || []).forEach((c) => { map[c.id] = c; });
+            setClients(map);
+          })
+          .catch(() => {});
+      }
     } catch (err) {
       setError(err.message || 'Erreur lors du chargement des titres');
     } finally {

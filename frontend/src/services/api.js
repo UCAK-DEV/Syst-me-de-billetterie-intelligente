@@ -89,6 +89,13 @@ export const api = {
     return request(`/admin/users${query ? `?${query}` : ''}`);
   },
 
+  // Identité minimale (nom, prénom, téléphone), accessible aux agents —
+  // contrairement à getUsers ci-dessus, réservé aux administrateurs.
+  lookupUsers: (ids = []) => {
+    if (ids.length === 0) return Promise.resolve({ users: [] });
+    return request(`/users/lookup?ids=${ids.join(',')}`);
+  },
+
   createUser: (userData) =>
     request('/admin/users', { method: 'POST', body: JSON.stringify(userData) }),
 

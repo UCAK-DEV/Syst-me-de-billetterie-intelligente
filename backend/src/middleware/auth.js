@@ -35,6 +35,15 @@ export const isAdmin = (req, res, next) => {
   return res.status(403).json({ message: 'Accès réservé aux administrateurs' });
 };
 
+// Autorise les administrateurs ET les agents (ex : lecture d'identités
+// minimales pour le contrôle sur le terrain).
+export const isAdminOrAgent = (req, res, next) => {
+  if (req.user && ['Administrateur', 'Agent'].includes(req.user.role)) {
+    return next();
+  }
+  return res.status(403).json({ message: 'Accès réservé au personnel autorisé (agents et administrateurs)' });
+};
+
 // Bloque l'accès tant que le mot de passe temporaire n'a pas été remplacé.
 // Le drapeau mustChangePassword permet au front de rediriger vers la page profil.
 export const requirePasswordChanged = (req, res, next) => {

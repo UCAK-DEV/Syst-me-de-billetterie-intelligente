@@ -8,6 +8,29 @@ import { genererConfirmationToken, dateExpirationToken } from '../utils/confirma
 // Rôles acceptés par le service (doit rester aligné sur l'énumération du modèle)
 const ROLES = ['Administrateur', 'Agent', 'Client'];
 
+// GET /api/users/lookup?ids=id1,id2 — identité minimale (nom, prénom,
+// téléphone) de plusieurs comptes, pour affichage lisible côté Billetterie
+// (ex: nom du client sur un titre). Réservé au personnel (Admin/Agent) via
+// le middleware de route ; volontairement dépourvu des champs sensibles
+// (email, rôle, statut) exposés par GET /api/admin/users.
+export const lookupUsers = async (req, res) => {
+  try {
+    const ids = (req.query.ids || '')
+      .split(',')
+      .map((id) => id.trim())
+      .filter((id) => mongoose.Types.ObjectId.isValid(id));
+
+    if (ids.length === 0) {
+      return res.status(200).json({ users: [] });
+    }
+
+    const users = await User.find({ _id: { $in: ids } }).select('nom prenom telephone');
+    return res.status(200).json({ users });
+  } catch (error) {
+    return res.status(500).json({ message: 'Erreur lors de la recherche des identités', error: error.message });
+  }
+};
+
 // Construit le filtre Mongo à partir des query params (role, status, search)
 const buildUserFilter = ({ role, status, search }) => {
   const filter = {};

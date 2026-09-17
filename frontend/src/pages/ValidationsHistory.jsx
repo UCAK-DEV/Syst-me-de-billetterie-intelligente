@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getValidations } from '../services/apiBilletterie';
+import { api } from '../services/api';
 import { motifLabel, motifColors } from '../utils/motifsRefus';
 
 const MOTIFS_OPTIONS = [
@@ -17,6 +18,7 @@ const MOTIFS_OPTIONS = [
 
 function ValidationsHistory() {
   const [validations, setValidations] = useState([]);
+  const [agents, setAgents] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -36,7 +38,19 @@ function ValidationsHistory() {
         date: dateFilter,
         recherche: search,
       });
-      setValidations(Array.isArray(data) ? data : []);
+      const list = Array.isArray(data) ? data : [];
+      setValidations(list);
+
+      const ids = [...new Set(list.map((v) => v.agentId).filter(Boolean))];
+      if (ids.length > 0) {
+        api.lookupUsers(ids)
+          .then((res) => {
+            const map = {};
+            (res.users || []).forEach((a) => { map[a.id] = a; });
+            setAgents(map);
+          })
+          .catch(() => {});
+      }
     } catch (err) {
       setError(err.message || "Erreur lors de la récupération de l'historique");
     } finally {
@@ -160,7 +174,13 @@ function ValidationsHistory() {
                           <span className="titre-meta">—</span>
                         )}
                       </td>
-                      <td className="table-td-id">{v.agentId.substring(0, 10)}...</td>
+                      <td className="table-td">
+                        {agents[v.agentId] ? (
+                          `${agents[v.agentId].prenom} ${agents[v.agentId].nom}`
+                        ) : (
+                          <span className="table-td-id">{v.agentId.substring(0, 10)}...</span>
+                        )}
+                      </td>
                     </tr>
                   ))
                 ) : (

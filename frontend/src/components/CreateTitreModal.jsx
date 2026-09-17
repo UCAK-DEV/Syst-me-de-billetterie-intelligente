@@ -21,7 +21,7 @@ function CreateTitreModal({ isOpen, onClose, onCreated }) {
     api.getUsers({ role: 'Client' })
       .then((res) => {
         const list = res.users || res;
-        setClients(Array.isArray(list) ? list.filter((u) => u.statut === 'Actif') : []);
+        setClients(Array.isArray(list) ? list.filter((u) => u.status === 'Actif') : []);
       })
       .catch((e) => console.error(e));
   }, [isOpen]);
