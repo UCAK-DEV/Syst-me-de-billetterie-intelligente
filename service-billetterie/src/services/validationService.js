@@ -165,8 +165,8 @@ export const validerScanQRCode = async ({ rawCode, agentId, agentRole, ipAdresse
       };
     }
 
-    // 2.3 Vérification de la date d'expiration du titre
-    if (titre.dateExpiration && dateStr > titre.dateExpiration) {
+    // 2.3 Vérification de la date ET de l'heure d'expiration du titre
+    if (titre.dateExpiration && now > new Date(titre.dateExpiration)) {
       if (titre.statut !== 'EXPIRE') {
         titre.statut = 'EXPIRE';
         await titre.save({ transaction: t });

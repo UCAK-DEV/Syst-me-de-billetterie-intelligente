@@ -24,11 +24,20 @@ const erreurValidation = (error) =>
 const messageValidation = (error) =>
   error.errors?.map((e) => e.message).join(' · ') || error.message;
 
-// Ajoute une durée en jours à une date 'AAAA-MM-JJ'
-const ajouterJours = (dateISO, jours) => {
-  const d = new Date(`${dateISO}T00:00:00Z`);
+// Ajoute une durée en jours à un horodatage, en conservant l'heure exacte —
+// une souscription prise à 14h32 pour 30 jours expire à 14h32, pas à minuit.
+const ajouterJours = (date, jours) => {
+  const d = new Date(date);
   d.setUTCDate(d.getUTCDate() + jours);
-  return d.toISOString().split('T')[0];
+  return d;
+};
+
+// Combine la date 'AAAA-MM-JJ' reçue du formulaire avec l'heure actuelle :
+// la résiliation doit pouvoir se déclencher à la date ET à l'heure précises
+// (règle explicitement demandée), ce qu'un simple DATEONLY ne permet pas.
+const dateDebutComplete = (dateISO) => {
+  const heureActuelle = new Date().toISOString().split('T')[1];
+  return new Date(`${dateISO}T${heureActuelle}`);
 };
 
 // Recharge l'abonnement avec sa formule : le contrat impose l'objet
@@ -72,11 +81,12 @@ export const souscrire = async (req, res) => {
       if (enCours) await enCours.rafraichirStatut();
     }
 
+    const debut = dateDebutComplete(dateDebut);
     const abonnement = await Abonnement.create({
       utilisateurId,
       FormuleId: formule.id,
-      dateDebut,
-      dateExpiration: ajouterJours(dateDebut, formule.dureeValiditeJours),
+      dateDebut: debut,
+      dateExpiration: ajouterJours(debut, formule.dureeValiditeJours),
       // Copiés depuis la formule : l'abonnement vendu garde ses conditions même
       // si le catalogue évolue ensuite.
       voyagesAutorises: formule.nombreVoyages,
@@ -136,10 +146,10 @@ export const listerSouscriptions = async (req, res) => {
       if (!Number.isInteger(jours) || jours < 0) {
         return res.status(400).json({ message: 'expireSous doit être un nombre entier de jours' });
       }
-      const aujourdHui = ajouterJours(new Date().toISOString().split('T')[0], 0);
-      const limite = ajouterJours(aujourdHui, jours);
+      const maintenant = new Date();
+      const limite = ajouterJours(maintenant, jours);
       resultat = resultat.filter(
-        (a) => a.statut === 'ACTIF' && a.dateExpiration >= aujourdHui && a.dateExpiration <= limite
+        (a) => a.statut === 'ACTIF' && new Date(a.dateExpiration) >= maintenant && new Date(a.dateExpiration) <= limite
       );
     }
 
@@ -225,8 +235,9 @@ export const renouveler = async (req, res) => {
     // Le renouvellement repart d'une période neuve : nouvelles dates, compteur
     // remis à zéro. On conserve les conditions d'origine (voyagesAutorises),
     // conformément à la règle du tarif figé (§4.1).
-    abonnement.dateDebut = dateDebut;
-    abonnement.dateExpiration = ajouterJours(dateDebut, abonnement.Formule.dureeValiditeJours);
+    const debut = dateDebutComplete(dateDebut);
+    abonnement.dateDebut = debut;
+    abonnement.dateExpiration = ajouterJours(debut, abonnement.Formule.dureeValiditeJours);
     abonnement.voyagesConsommes = 0;
     abonnement.statut = 'ACTIF';
     await abonnement.save();

@@ -20,6 +20,10 @@ const dans = (jours) => {
   return d.toISOString().split('T')[0];
 };
 
+// Ecart en heures par rapport à maintenant, pour vérifier la précision à
+// l'heure près (résiliation dès la date ET l'heure d'expiration atteintes).
+const dansHeures = (heures) => new Date(Date.now() + heures * 60 * 60 * 1000);
+
 const abonnement = (surcharges = {}) =>
   Abonnement.build({
     utilisateurId: '6a5b68fc8be4efac6e1a775e',
@@ -62,9 +66,15 @@ describe('Statut effectif', () => {
     assert.equal(abonnement({ voyagesAutorises: 5, voyagesConsommes: 5 }).statutEffectif(), 'EPUISE');
   });
 
-  test('reste utilisable le jour même de l’expiration', () => {
-    // Un abonnement valable « jusqu'au 18 » doit servir le 18.
-    assert.equal(abonnement({ dateExpiration: dans(0) }).statutEffectif(), 'ACTIF');
+  test('reste ACTIF tant que l’heure précise d’expiration n’est pas atteinte', () => {
+    // Comparaison à l'heure près (pas seulement au jour) : un abonnement qui
+    // expire dans 2h, même aujourd'hui, doit encore servir.
+    assert.equal(abonnement({ dateExpiration: dansHeures(2) }).statutEffectif(), 'ACTIF');
+  });
+
+  test('bascule en EXPIRE dès que l’heure précise d’expiration est dépassée', () => {
+    // Même jour calendaire, mais l'heure exacte est passée : doit résilier.
+    assert.equal(abonnement({ dateExpiration: dansHeures(-2) }).statutEffectif(), 'EXPIRE');
   });
 
   test('un illimité n’est jamais épuisé, quel que soit le nombre de voyages', () => {

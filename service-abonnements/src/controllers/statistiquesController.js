@@ -15,7 +15,7 @@ const SEUIL_EXPIRATION_PROCHE = 7;
 export const joursAvant = (nombre, depuis = new Date()) => {
   const d = new Date(depuis);
   d.setDate(d.getDate() + nombre);
-  return d.toISOString().split('T')[0];
+  return d;
 };
 
 // GET /api/abonnements/dashboard/stats
@@ -54,8 +54,8 @@ export const obtenirStatistiques = async (req, res) => {
       // Seuls les abonnements encore utilisables méritent une relance.
       if (
         abonnement.statut === 'ACTIF' &&
-        abonnement.dateExpiration >= aujourdHui &&
-        abonnement.dateExpiration <= limite
+        new Date(abonnement.dateExpiration) >= aujourdHui &&
+        new Date(abonnement.dateExpiration) <= limite
       ) {
         expirentSous7Jours += 1;
       }

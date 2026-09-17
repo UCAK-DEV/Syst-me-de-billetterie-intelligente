@@ -8,10 +8,7 @@ export class TitreTransport extends Model {
    */
   estValide() {
     if (this.statut !== 'ACTIF') return false;
-    if (this.dateExpiration) {
-      const today = new Date().toISOString().split('T')[0];
-      if (today > this.dateExpiration) return false;
-    }
+    if (this.dateExpiration && new Date() > new Date(this.dateExpiration)) return false;
     return true;
   }
 }
@@ -58,8 +55,10 @@ TitreTransport.init(
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
     },
+    // Horodatage complet : l'expiration doit se déclencher à la date ET à
+    // l'heure précises, pas seulement au changement de jour calendaire.
     dateExpiration: {
-      type: DataTypes.DATEONLY,
+      type: DataTypes.DATE,
       allowNull: true,
     },
     consommeLe: {

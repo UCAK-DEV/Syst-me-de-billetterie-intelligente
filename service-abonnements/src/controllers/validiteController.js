@@ -37,7 +37,7 @@ export const verifierValidite = async (req, res) => {
     // cours et des tickets simples. On retient celui qui expire le plus tôt,
     // pour éviter qu'un titre soit perdu alors qu'un autre restait valable
     // plus longtemps.
-    utilisables.sort((a, b) => a.dateExpiration.localeCompare(b.dateExpiration));
+    utilisables.sort((a, b) => new Date(a.dateExpiration) - new Date(b.dateExpiration));
     const retenu = utilisables[0];
 
     // Réponse volontairement réduite aux trois champs du contrat : le Service

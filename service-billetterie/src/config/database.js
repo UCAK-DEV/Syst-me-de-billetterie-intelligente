@@ -36,7 +36,9 @@ export const connectDB = async () => {
     logger.info(`PostgreSQL connecté : ${nomBase} sur le port ${process.env.DB_PORT || 5432}`);
 
     if (process.env.NODE_ENV !== 'production') {
-      await sequelize.sync();
+      // `alter` en développement seulement (comme le Service Abonnements) :
+      // en production, on passerait par des migrations.
+      await sequelize.sync({ alter: true });
       logger.info('Schéma PostgreSQL synchronisé avec succès.');
     }
   } catch (error) {

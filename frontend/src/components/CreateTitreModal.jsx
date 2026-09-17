@@ -41,7 +41,7 @@ function CreateTitreModal({ isOpen, onClose, onCreated }) {
         setAbonnementsClient(activeList);
         if (activeList.length > 0) {
           setAbonnementId(activeList[0].id);
-          setDateExpiration(activeList[0].dateExpiration || '');
+          setDateExpiration(activeList[0].dateExpiration ? activeList[0].dateExpiration.split('T')[0] : '');
           if (activeList[0].formule?.type) {
             setTypeTitre(activeList[0].formule.type);
           }
@@ -203,7 +203,7 @@ function CreateTitreModal({ isOpen, onClose, onCreated }) {
                   onChange={(e) => {
                     setAbonnementId(e.target.value);
                     const abo = abonnementsClient.find((a) => String(a.id) === e.target.value);
-                    if (abo?.dateExpiration) setDateExpiration(abo.dateExpiration);
+                    if (abo?.dateExpiration) setDateExpiration(abo.dateExpiration.split('T')[0]);
                   }}
                   className="form-select"
                 >

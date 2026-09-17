@@ -42,7 +42,9 @@ describe('API — Souscriptions', () => {
         .expect(201);
 
       const { abonnement } = res.body;
-      assert.equal(abonnement.dateExpiration, dans(30));
+      // dateExpiration est désormais un horodatage complet (précision à
+      // l'heure) : on vérifie le jour calendaire attendu, pas l'heure exacte.
+      assert.ok(abonnement.dateExpiration.startsWith(dans(30)));
       assert.equal(abonnement.voyagesAutorises, 20);
       assert.equal(abonnement.voyagesRestants, 20);
       assert.equal(abonnement.statut, 'ACTIF');
@@ -197,7 +199,7 @@ describe('API — Souscriptions', () => {
 
       assert.equal(res.body.abonnement.statut, 'ACTIF');
       assert.equal(res.body.abonnement.voyagesConsommes, 0);
-      assert.equal(res.body.abonnement.dateExpiration, dans(30));
+      assert.ok(res.body.abonnement.dateExpiration.startsWith(dans(30)));
     });
 
     test('refuse de renouveler un ticket simple', async () => {

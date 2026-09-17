@@ -181,7 +181,7 @@ describe('API — Droit à voyager', () => {
     await creerAbonnement(ticket, { utilisateurId: client, dateExpiration: dans(2) });
 
     const res = await request(app).get(`${VALIDITE}/${client}`).set(enteteAdmin()).expect(200);
-    assert.equal(res.body.abonnement.dateExpiration, dans(2));
+    assert.ok(res.body.abonnement.dateExpiration.startsWith(dans(2)));
   });
 
   test('ouvre la vérification aux agents, à soi-même, mais pas à un autre client', async () => {

@@ -30,12 +30,15 @@ class Abonnement extends Model {
    *
    * Les statuts décidés par l'administrateur (SUSPENDU, RESILIE) priment :
    * ils ne doivent jamais être écrasés par un calcul automatique.
+   *
+   * La comparaison se fait à l'heure près (dateExpiration est un horodatage
+   * complet, pas seulement un jour) : un abonnement souscrit à 14h32 pour
+   * 30 jours expire à 14h32, pas à minuit.
    */
   statutEffectif(maintenant = new Date()) {
     if (this.statut === 'RESILIE' || this.statut === 'SUSPENDU') return this.statut;
 
-    const aujourdHui = maintenant.toISOString().split('T')[0];
-    if (this.dateExpiration && this.dateExpiration < aujourdHui) return 'EXPIRE';
+    if (this.dateExpiration && maintenant > new Date(this.dateExpiration)) return 'EXPIRE';
 
     const restants = this.voyagesRestants;
     if (restants !== null && restants <= 0) return 'EPUISE';
@@ -94,14 +97,14 @@ Abonnement.init(
         is: { args: /^[a-f0-9]{24}$/i, msg: 'Identifiant utilisateur invalide' },
       },
     },
-    // DATEONLY : Sequelize renvoie directement des chaînes 'AAAA-MM-JJ',
-    // exactement le format imposé par le contrat.
+    // Horodatage complet (pas seulement un jour) : la résiliation doit
+    // pouvoir se déclencher à la date ET à l'heure précises d'expiration.
     dateDebut: {
-      type: DataTypes.DATEONLY,
+      type: DataTypes.DATE,
       allowNull: false,
     },
     dateExpiration: {
-      type: DataTypes.DATEONLY,
+      type: DataTypes.DATE,
       allowNull: false,
     },
     // Copiés depuis la formule au moment de la souscription : si le catalogue
