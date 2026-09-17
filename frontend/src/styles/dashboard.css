@@ -1721,26 +1721,6 @@ body {
   margin: 1rem 0 0;
 }
 
-.scan-demo-shortcuts {
-  margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-glass);
-}
-
-.scan-demo-label {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  font-weight: 600;
-  margin-right: 0.5rem;
-}
-
-.scan-demo-buttons {
-  display: inline-flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-top: 0.5rem;
-}
-
 .scan-result {
   border-radius: 0.75rem;
   padding: 2.5rem;

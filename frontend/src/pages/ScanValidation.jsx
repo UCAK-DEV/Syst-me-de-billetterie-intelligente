@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { scannerValidation, getTitres } from '../services/apiBilletterie';
+import { scannerValidation } from '../services/apiBilletterie';
 import { motifLabel, motifColors } from '../utils/motifsRefus';
 
 const QR_READER_ID = 'qr-reader-camera';
@@ -61,22 +61,12 @@ function ScanValidation() {
   const [resultat, setResultat] = useState(null);
   const [historiqueSession, setHistoriqueSession] = useState(chargerHistoriqueStocke);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [availableTitres, setAvailableTitres] = useState([]);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [cameraError, setCameraError] = useState(null);
 
   const inputRef = useRef(null);
   const html5QrRef = useRef(null);
   const scanningRef = useRef(false);
-
-  // Charger les titres disponibles pour faciliter les tests/démonstration rapide
-  useEffect(() => {
-    getTitres()
-      .then((titres) => {
-        if (Array.isArray(titres)) setAvailableTitres(titres.slice(0, 5));
-      })
-      .catch(() => {});
-  }, []);
 
   // Maintenir le focus sur l'input pour la douchette de scan
   useEffect(() => {
@@ -291,24 +281,6 @@ function ScanValidation() {
             </div>
           </div>
         </form>
-
-        {availableTitres.length > 0 && (
-          <div className="scan-demo-shortcuts">
-            <span className="scan-demo-label">Tester avec un titre existant :</span>
-            <div className="scan-demo-buttons">
-              {availableTitres.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => handleScan(t.codeUnique)}
-                  className="filter-chip"
-                >
-                  {t.typeTitre} ({t.statut})
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </section>
 
       {resultat && (
