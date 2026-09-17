@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatDateFR } from '../utils/dates';
 
 const TYPE_LABELS = {
   TICKET_SIMPLE: 'Ticket simple',
@@ -84,7 +85,7 @@ function ViewQrModal({ titre, client, onClose }) {
 
           {titre.dateExpiration && (
             <div className="qr-expiration">
-              Valable jusqu'au : <strong>{titre.dateExpiration}</strong>
+              Valable jusqu'au : <strong>{formatDateFR(titre.dateExpiration)}</strong>
             </div>
           )}
         </div>

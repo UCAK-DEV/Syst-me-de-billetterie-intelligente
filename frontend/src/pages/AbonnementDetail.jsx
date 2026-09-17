@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { api } from '../services/api';
 import { getSouscriptionById, getHistorique, setSouscriptionStatut, renouvelerSouscription } from '../services/apiAbonnements';
+import { formatDateFR, formatDateTimeFR } from '../utils/dates';
 
 const TYPE_LABELS = {
   TICKET_SIMPLE: 'Ticket simple',
@@ -215,11 +216,11 @@ function AbonnementDetail() {
           </div>
           <div className="form-group">
             <label className="form-label">Date de début</label>
-            <div className="user-email-text">{abonnement.dateDebut}</div>
+            <div className="user-email-text">{formatDateFR(abonnement.dateDebut)}</div>
           </div>
           <div className="form-group">
             <label className="form-label">Date d'expiration</label>
-            <div className="user-email-text">{abonnement.dateExpiration}</div>
+            <div className="user-email-text">{formatDateFR(abonnement.dateExpiration)}</div>
           </div>
           <div className="form-group">
             <label className="form-label">Voyages</label>
@@ -231,7 +232,7 @@ function AbonnementDetail() {
           </div>
           <div className="form-group">
             <label className="form-label">Créé le</label>
-            <div className="user-email-text">{abonnement.creeLe}</div>
+            <div className="user-email-text">{formatDateFR(abonnement.creeLe)}</div>
           </div>
         </div>
       </section>
@@ -282,7 +283,7 @@ function AbonnementDetail() {
               {historique.length > 0 ? (
                 historique.map((h) => (
                   <tr key={h.id} className="table-row">
-                    <td className="table-td">{h.dateVoyage}</td>
+                    <td className="table-td">{formatDateTimeFR(h.dateVoyage)}</td>
                     <td className="table-td-id">{h.validationId}</td>
                   </tr>
                 ))

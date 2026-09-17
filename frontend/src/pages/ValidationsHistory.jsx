@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { getValidations } from '../services/apiBilletterie';
 import { api } from '../services/api';
 import { motifLabel, motifColors } from '../utils/motifsRefus';
+import { formatDateFR } from '../utils/dates';
 
 const MOTIFS_OPTIONS = [
   { val: 'QR_CODE_INCONNU', label: 'QR Code inconnu' },
@@ -150,7 +151,7 @@ function ValidationsHistory() {
                     <tr key={v.id} className="table-row">
                       <td className="table-td-id">{v.id}</td>
                       <td className="table-td">
-                        <div>{v.dateValidation}</div>
+                        <div>{formatDateFR(v.dateValidation)}</div>
                         <div className="titre-meta">{v.heureValidation}</div>
                       </td>
                       <td className="table-td">

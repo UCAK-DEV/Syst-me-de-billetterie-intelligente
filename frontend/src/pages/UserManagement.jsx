@@ -3,6 +3,7 @@ import { api } from '../services/api';
 import CreateUserModal from '../components/CreateUserModal';
 import EditUserModal from '../components/EditUserModal';
 import ImportCsvModal from '../components/ImportCsvModal';
+import { formatDateFR } from '../utils/dates';
 import StatCard from '../components/StatCard';
 import ConfirmDialog from '../components/ConfirmDialog';
 import './UserManagement.css';
@@ -491,7 +492,7 @@ function UserManagement() {
                             <span className="status-text">{user.status}</span>
                           </div>
                         </td>
-                        <td className="table-td-date">{user.date}</td>
+                        <td className="table-td-date">{formatDateFR(user.date)}</td>
                         <td className="table-td-action">
                           <div className="action-cell">
                             {user.status === 'Supprimé' ? (

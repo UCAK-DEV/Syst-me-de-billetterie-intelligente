@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { getSouscriptions } from '../services/apiAbonnements';
 import { creerTitre } from '../services/apiBilletterie';
+import { formatDateFR } from '../utils/dates';
 
 function CreateTitreModal({ isOpen, onClose, onCreated }) {
   const [clients, setClients] = useState([]);
@@ -208,7 +209,7 @@ function CreateTitreModal({ isOpen, onClose, onCreated }) {
                 >
                   {abonnementsClient.map((abo) => (
                     <option key={abo.id} value={abo.id}>
-                      #{abo.id} — {abo.formule?.nom || 'Abonnement'} (Expire le {abo.dateExpiration})
+                      #{abo.id} — {abo.formule?.nom || 'Abonnement'} (Expire le {formatDateFR(abo.dateExpiration)})
                     </option>
                   ))}
                 </select>

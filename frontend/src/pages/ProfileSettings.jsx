@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api, setStoredUser, photoUrl } from '../services/api';
 import { validateNewPassword, validateUserForm } from '../utils/validators';
 import PasswordInput from '../components/PasswordInput';
+import { formatDateFR } from '../utils/dates';
 import './ProfileSettings.css';
 
 function ProfileSettings() {
@@ -188,7 +189,7 @@ function ProfileSettings() {
             </div>
             <div>
               <dt>Membre depuis</dt>
-              <dd>{user.date}</dd>
+              <dd>{formatDateFR(user.date)}</dd>
             </div>
           </dl>
         </section>

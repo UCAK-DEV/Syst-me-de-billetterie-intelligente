@@ -4,6 +4,7 @@ import { api, getStoredUser } from '../services/api';
 import CreateTitreModal from '../components/CreateTitreModal';
 import ViewQrModal from '../components/ViewQrModal';
 import ConfirmDialog from '../components/ConfirmDialog';
+import { formatDateFR } from '../utils/dates';
 
 const TYPE_LABELS = {
   TICKET_SIMPLE: 'Ticket simple',
@@ -247,7 +248,7 @@ function TitresManagement() {
                 <div className="titre-card-client">
                   {client ? `${client.prenom} ${client.nom}` : `${t.utilisateurId.substring(0, 10)}...`}
                 </div>
-                <div className="titre-meta">{t.dateExpiration || 'Illimitée'}</div>
+                <div className="titre-meta">{t.dateExpiration ? formatDateFR(t.dateExpiration) : 'Illimitée'}</div>
                 <div className="titre-meta">{t.codeUnique}</div>
                 <div className="titre-card-actions">{renderActions(t)}</div>
               </div>
@@ -278,7 +279,7 @@ function TitresManagement() {
                         <div>
                           <div className="table-td-id">{t.codeUnique}</div>
                           <div className="titre-meta">
-                            Créé le {new Date(t.dateCreation || t.createdAt).toLocaleDateString()}
+                            Créé le {formatDateFR(t.dateCreation || t.createdAt)}
                           </div>
                         </div>
                       </td>
@@ -298,7 +299,7 @@ function TitresManagement() {
                         </span>
                       </td>
                       <td className="table-td">
-                        {t.dateExpiration || <span className="titre-meta">Illimitée</span>}
+                        {t.dateExpiration ? formatDateFR(t.dateExpiration) : <span className="titre-meta">Illimitée</span>}
                       </td>
                       <td className="table-td">
                         <span className="role-badge" style={STATUT_COLORS[t.statut]}>
