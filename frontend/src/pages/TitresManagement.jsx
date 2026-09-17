@@ -40,6 +40,15 @@ function TitresManagement() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedTitreForQr, setSelectedTitreForQr] = useState(null);
 
+  // Affichage : liste (tableau dense) ou grille (QR mis en avant)
+  const [viewMode, setViewMode] = useState(
+    () => localStorage.getItem('titresViewMode') || 'liste'
+  );
+  const changerVue = (mode) => {
+    setViewMode(mode);
+    localStorage.setItem('titresViewMode', mode);
+  };
+
   const currentUser = getStoredUser();
   const isAdmin = currentUser?.role === 'Administrateur';
 
@@ -97,6 +106,38 @@ function TitresManagement() {
       },
     });
   };
+
+  const renderActions = (t) => (
+    <>
+      <button
+        type="button"
+        className="icon-btn"
+        title="Voir et imprimer le QR Code"
+        onClick={() => setSelectedTitreForQr(t)}
+      >
+        <span className="material-symbols-outlined">qr_code</span>
+      </button>
+
+      {isAdmin && (t.statut === 'ACTIF' || t.statut === 'DESACTIVE') && (
+        <button
+          type="button"
+          className="icon-btn"
+          title={t.statut === 'ACTIF' ? 'Désactiver le titre' : 'Activer le titre'}
+          onClick={() => handleToggleStatut(t)}
+        >
+          <span className="material-symbols-outlined">
+            {t.statut === 'ACTIF' ? 'block' : 'check_circle'}
+          </span>
+        </button>
+      )}
+    </>
+  );
+
+  const messageVide = search || typeFilter || statutFilter
+    ? 'Aucun titre ne correspond à ces critères.'
+    : isAdmin
+      ? 'Aucun titre généré pour l\'instant — cliquez sur "Générer un titre" pour créer le premier.'
+      : 'Aucun titre généré pour l\'instant.';
 
   return (
     <main className="main-content">
@@ -158,15 +199,63 @@ function TitresManagement() {
             </select>
           </div>
         </div>
+
+        <div className="view-toggle" role="group" aria-label="Mode d'affichage">
+          <button
+            type="button"
+            className={`view-toggle-btn${viewMode === 'liste' ? ' active' : ''}`}
+            title="Affichage en liste"
+            onClick={() => changerVue('liste')}
+          >
+            <span className="material-symbols-outlined">view_list</span>
+          </button>
+          <button
+            type="button"
+            className={`view-toggle-btn${viewMode === 'grille' ? ' active' : ''}`}
+            title="Affichage en grille"
+            onClick={() => changerVue('grille')}
+          >
+            <span className="material-symbols-outlined">grid_view</span>
+          </button>
+        </div>
       </section>
 
-      <section className="table-card">
-        {loading ? (
+      {loading ? (
+        <section className="table-card">
           <div className="loader-container">
             <span className="page-loader"></span>
             <p className="loader-text">Chargement des titres...</p>
           </div>
-        ) : (
+        </section>
+      ) : titres.length === 0 ? (
+        <section className="table-card">
+          <p className="table-empty-cell">{messageVide}</p>
+        </section>
+      ) : viewMode === 'grille' ? (
+        <div className="titres-grid">
+          {titres.map((t) => {
+            const client = clients[t.utilisateurId];
+            return (
+              <div key={t.id} className="titre-card">
+                <img src={t.qrCodeData} alt="" className="titre-card-qr" />
+                <div className="titre-card-badges">
+                  <span className="role-badge" style={TYPE_COLORS[t.typeTitre]}>
+                    {TYPE_LABELS[t.typeTitre] || t.typeTitre}
+                  </span>
+                  <span className="role-badge" style={STATUT_COLORS[t.statut]}>{t.statut}</span>
+                </div>
+                <div className="titre-card-client">
+                  {client ? `${client.prenom} ${client.nom}` : `${t.utilisateurId.substring(0, 10)}...`}
+                </div>
+                <div className="titre-meta">{t.dateExpiration || 'Illimitée'}</div>
+                <div className="titre-meta">{t.codeUnique}</div>
+                <div className="titre-card-actions">{renderActions(t)}</div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <section className="table-card">
           <div className="table-responsive">
             <table className="user-table">
               <thead>
@@ -180,85 +269,51 @@ function TitresManagement() {
                 </tr>
               </thead>
               <tbody>
-                {titres.length > 0 ? (
-                  titres.map((t) => {
-                    const client = clients[t.utilisateurId];
-                    return (
-                      <tr key={t.id} className="table-row">
-                        <td className="table-td-user">
-                          <img src={t.qrCodeData} alt="" className="titre-qr-thumb" />
-                          <div>
-                            <div className="table-td-id">{t.codeUnique}</div>
-                            <div className="titre-meta">
-                              Créé le {new Date(t.dateCreation || t.createdAt).toLocaleDateString()}
-                            </div>
+                {titres.map((t) => {
+                  const client = clients[t.utilisateurId];
+                  return (
+                    <tr key={t.id} className="table-row">
+                      <td className="table-td-user">
+                        <img src={t.qrCodeData} alt="" className="titre-qr-thumb" />
+                        <div>
+                          <div className="table-td-id">{t.codeUnique}</div>
+                          <div className="titre-meta">
+                            Créé le {new Date(t.dateCreation || t.createdAt).toLocaleDateString()}
                           </div>
-                        </td>
-                        <td className="table-td">
-                          {client ? (
-                            <div>
-                              <div>{client.prenom} {client.nom}</div>
-                              <div className="titre-meta">{client.telephone}</div>
-                            </div>
-                          ) : (
-                            <span className="table-td-id">{t.utilisateurId.substring(0, 10)}...</span>
-                          )}
-                        </td>
-                        <td className="table-td">
-                          <span className="role-badge" style={TYPE_COLORS[t.typeTitre]}>
-                            {TYPE_LABELS[t.typeTitre] || t.typeTitre}
-                          </span>
-                        </td>
-                        <td className="table-td">
-                          {t.dateExpiration || <span className="titre-meta">Illimitée</span>}
-                        </td>
-                        <td className="table-td">
-                          <span className="role-badge" style={STATUT_COLORS[t.statut]}>
-                            {t.statut}
-                          </span>
-                        </td>
-                        <td className="table-td-action">
-                          <button
-                            type="button"
-                            className="icon-btn"
-                            title="Voir et imprimer le QR Code"
-                            onClick={() => setSelectedTitreForQr(t)}
-                          >
-                            <span className="material-symbols-outlined">qr_code</span>
-                          </button>
-
-                          {isAdmin && (t.statut === 'ACTIF' || t.statut === 'DESACTIVE') && (
-                            <button
-                              type="button"
-                              className="icon-btn"
-                              title={t.statut === 'ACTIF' ? 'Désactiver le titre' : 'Activer le titre'}
-                              onClick={() => handleToggleStatut(t)}
-                            >
-                              <span className="material-symbols-outlined">
-                                {t.statut === 'ACTIF' ? 'block' : 'check_circle'}
-                              </span>
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })
-                ) : (
-                  <tr>
-                    <td colSpan="6" className="table-empty-cell">
-                      {search || typeFilter || statutFilter
-                        ? 'Aucun titre ne correspond à ces critères.'
-                        : isAdmin
-                          ? 'Aucun titre généré pour l\'instant — cliquez sur "Générer un titre" pour créer le premier.'
-                          : 'Aucun titre généré pour l\'instant.'}
-                    </td>
-                  </tr>
-                )}
+                        </div>
+                      </td>
+                      <td className="table-td">
+                        {client ? (
+                          <div>
+                            <div>{client.prenom} {client.nom}</div>
+                            <div className="titre-meta">{client.telephone}</div>
+                          </div>
+                        ) : (
+                          <span className="table-td-id">{t.utilisateurId.substring(0, 10)}...</span>
+                        )}
+                      </td>
+                      <td className="table-td">
+                        <span className="role-badge" style={TYPE_COLORS[t.typeTitre]}>
+                          {TYPE_LABELS[t.typeTitre] || t.typeTitre}
+                        </span>
+                      </td>
+                      <td className="table-td">
+                        {t.dateExpiration || <span className="titre-meta">Illimitée</span>}
+                      </td>
+                      <td className="table-td">
+                        <span className="role-badge" style={STATUT_COLORS[t.statut]}>
+                          {t.statut}
+                        </span>
+                      </td>
+                      <td className="table-td-action">{renderActions(t)}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
-        )}
-      </section>
+        </section>
+      )}
 
       {showCreateModal && (
         <CreateTitreModal
