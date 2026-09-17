@@ -79,7 +79,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1.25rem 1.25rem 1rem;
+  padding: 0.85rem 1.25rem 0.6rem;
 }
 
 .sidebar-brand .nav-brand-text {
@@ -150,7 +150,7 @@ body {
 }
 
 .sidebar-section {
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.75rem;
 }
 
 .sidebar-section-title {
@@ -161,14 +161,14 @@ body {
   letter-spacing: 0.08em;
   color: #8b87c4;
   padding: 0 0.6rem;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.25rem;
 }
 
 .sidebar-link {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.6rem 0.6rem;
+  padding: 0.4rem 0.6rem;
   border-radius: 0.5rem;
   font-size: 0.85rem;
   font-weight: 600;
@@ -192,11 +192,11 @@ body {
 }
 
 .sidebar-footer {
-  padding: 0.75rem;
+  padding: 0.6rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
 .sidebar-footer .nav-user-identity {
@@ -210,9 +210,9 @@ body {
   justify-content: center;
   gap: 0.5rem;
   width: 100%;
-  padding: 0.55rem 0.75rem;
+  padding: 0.4rem 0.75rem;
   border-radius: 0.5rem;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
 }
@@ -244,8 +244,8 @@ body {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  margin: 0.25rem 0.75rem 0.75rem;
-  padding: 0.5rem 0.6rem;
+  margin: 0.15rem 0.75rem 0.5rem;
+  padding: 0.4rem 0.6rem;
   border-radius: 0.5rem;
   background-color: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -349,12 +349,38 @@ body {
   font-size: 0.85rem;
 }
 
+.sidebar-footer .nav-user-identity {
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+}
+
 .sidebar-footer .nav-user-identity:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 .sidebar-footer .nav-user-name {
   color: #ffffff;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-user-chevron {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.4);
+  flex-shrink: 0;
+}
+
+.sidebar-footer .nav-user-identity:hover .nav-user-chevron {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.sidebar.collapsed .nav-user-chevron {
+  display: none;
 }
 
 .app-content {
@@ -1000,11 +1026,13 @@ body {
 }
 
 .role-badge {
+  display: inline-block;
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .status-dot {

@@ -3,6 +3,7 @@ import { getStoredUser } from '../services/api';
 import { getTitresClient } from '../services/apiBilletterie';
 import { verifierValidite } from '../services/apiAbonnements';
 import ViewQrModal from '../components/ViewQrModal';
+import { formatDateFR } from '../utils/dates';
 
 const TYPE_LABELS = {
   TICKET_SIMPLE: 'Ticket simple',
@@ -93,7 +94,7 @@ function EspaceClient() {
               {validite.abonnement.voyagesRestants !== null && validite.abonnement.voyagesRestants !== undefined
                 ? `Voyages restants : ${validite.abonnement.voyagesRestants}`
                 : 'Voyages illimités'}
-              {' · '}Expire le {validite.abonnement.dateExpiration}
+              {' · '}Expire le {formatDateFR(validite.abonnement.dateExpiration)}
             </div>
           )}
         </div>
@@ -125,7 +126,7 @@ function EspaceClient() {
                     <td className="table-td">
                       <span className="role-badge" style={STATUT_COLORS[t.statut]}>{t.statut}</span>
                     </td>
-                    <td className="table-td">{t.dateExpiration || '—'}</td>
+                    <td className="table-td">{t.dateExpiration ? formatDateFR(t.dateExpiration) : '—'}</td>
                     <td className="table-td-action">
                       <button
                         type="button"

@@ -203,6 +203,7 @@ function DashboardLayout() {
                 )}
               </div>
               <span className="nav-user-name">{user.prenom} {user.nom}</span>
+              <span className="material-symbols-outlined nav-user-chevron">chevron_right</span>
             </Link>
 
             <button
