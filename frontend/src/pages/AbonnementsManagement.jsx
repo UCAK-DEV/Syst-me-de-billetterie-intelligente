@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../services/api';
 import { getSouscriptions, createSouscription } from '../services/apiAbonnements';
 import SouscriptionModal from '../components/SouscriptionModal';
-import { formatDateFR } from '../utils/dates';
+import { formatDateFR, dureeValiditeJours, tempsRestant } from '../utils/dates';
 import './UserManagement.css';
 
 const TYPE_LABELS = {
@@ -221,7 +221,12 @@ function AbonnementsManagement() {
                           {abo.formule.nom}
                           <div className="user-email-text">{TYPE_LABELS[abo.formule.type] || abo.formule.type}</div>
                         </td>
-                        <td className="table-td">{formatDateFR(abo.dateDebut)} → {formatDateFR(abo.dateExpiration)}</td>
+                        <td className="table-td">
+                          <div>{formatDateFR(abo.dateDebut)} → {formatDateFR(abo.dateExpiration)}</div>
+                          <div className="user-email-text">
+                            {dureeValiditeJours(abo.dateDebut, abo.dateExpiration)} jours au total · {tempsRestant(abo.dateExpiration)}
+                          </div>
+                        </td>
                         <td className="table-td">
                           {abo.voyagesRestants === null
                             ? `${abo.voyagesConsommes} voyage(s)`

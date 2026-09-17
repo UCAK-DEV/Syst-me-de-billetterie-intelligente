@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { api } from '../services/api';
 import { getSouscriptionById, getHistorique, setSouscriptionStatut, renouvelerSouscription } from '../services/apiAbonnements';
-import { formatDateFR, formatDateTimeFR } from '../utils/dates';
+import { formatDateFR, formatDateTimeFR, dureeValiditeJours, tempsRestant } from '../utils/dates';
 
 const TYPE_LABELS = {
   TICKET_SIMPLE: 'Ticket simple',
@@ -221,6 +221,12 @@ function AbonnementDetail() {
           <div className="form-group">
             <label className="form-label">Date d'expiration</label>
             <div className="user-email-text">{formatDateFR(abonnement.dateExpiration)}</div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Durée de validité</label>
+            <div className="user-email-text">
+              {dureeValiditeJours(abonnement.dateDebut, abonnement.dateExpiration)} jours au total — {tempsRestant(abonnement.dateExpiration)}
+            </div>
           </div>
           <div className="form-group">
             <label className="form-label">Voyages</label>
