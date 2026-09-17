@@ -36,9 +36,12 @@ export const connectDB = async () => {
     logger.info(`PostgreSQL connecté : ${nomBase} sur le port ${process.env.DB_PORT || 5432}`);
 
     if (process.env.NODE_ENV !== 'production') {
-      // `alter` en développement seulement (comme le Service Abonnements) :
-      // en production, on passerait par des migrations.
-      await sequelize.sync({ alter: true });
+      // `alter: true` génère un ALTER TABLE invalide sur PostgreSQL pour la
+      // colonne unique `codeUnique` (bug Sequelize/pg : "TYPE ... UNIQUE" au
+      // lieu d'une contrainte séparée). On reste donc sur un sync simple ;
+      // les changements de colonnes se font via une migration ciblée
+      // (voir scripts/migrate-dateExpiration-billetterie.mjs).
+      await sequelize.sync();
       logger.info('Schéma PostgreSQL synchronisé avec succès.');
     }
   } catch (error) {

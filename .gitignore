@@ -5,6 +5,7 @@ frontend/node_modules/
 service-abonnements/node_modules/
 service-billetterie/node_modules/
 service-billetterie/logs/
+logs/
 
 # Environment files
 .env
