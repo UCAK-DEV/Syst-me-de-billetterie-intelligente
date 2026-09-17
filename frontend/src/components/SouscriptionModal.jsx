@@ -53,7 +53,7 @@ function SouscriptionModal({ isOpen, onClose, onSave }) {
     setClientQuery('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const validationError = validateSouscriptionForm(form);
@@ -63,7 +63,11 @@ function SouscriptionModal({ isOpen, onClose, onSave }) {
     }
 
     setError(null);
-    onSave({ ...form, formuleId: Number(form.formuleId) });
+    try {
+      await onSave({ ...form, formuleId: Number(form.formuleId) });
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (

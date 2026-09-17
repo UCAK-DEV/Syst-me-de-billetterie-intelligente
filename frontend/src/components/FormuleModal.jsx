@@ -38,7 +38,7 @@ function FormuleModal({ isOpen, formule, onClose, onSave }) {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const payload = {
@@ -57,7 +57,11 @@ function FormuleModal({ isOpen, formule, onClose, onSave }) {
     }
 
     setError(null);
-    onSave(payload);
+    try {
+      await onSave(payload);
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (

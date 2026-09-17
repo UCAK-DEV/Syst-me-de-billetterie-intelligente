@@ -89,14 +89,12 @@ function AbonnementsManagement() {
   });
 
   const handleCreateSouscription = async (payload) => {
-    try {
-      await createSouscription(payload);
-      setIsCreateModalOpen(false);
-      setError(null);
-      fetchAbonnements();
-    } catch (err) {
-      setError(err.message);
-    }
+    // L'erreur doit s'afficher dans la modale (là où l'admin agit), pas dans
+    // la bannière de page : on laisse SouscriptionModal l'attraper.
+    await createSouscription(payload);
+    setIsCreateModalOpen(false);
+    setError(null);
+    fetchAbonnements();
   };
 
   return (

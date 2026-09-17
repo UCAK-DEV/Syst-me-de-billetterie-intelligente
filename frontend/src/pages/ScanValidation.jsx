@@ -4,6 +4,17 @@ import { scannerValidation, getTitres } from '../services/apiBilletterie';
 import { motifLabel, motifColors } from '../utils/motifsRefus';
 
 const QR_READER_ID = 'qr-reader-camera';
+const HISTORIQUE_STORAGE_KEY = 'scanHistoriqueSession';
+
+const chargerHistoriqueStocke = () => {
+  try {
+    const raw = localStorage.getItem(HISTORIQUE_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
 
 // Bips sonores synthétisés natifs sans fichiers externes
 function playAudioFeedback(isSuccess) {
@@ -48,7 +59,7 @@ function ScanValidation() {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [resultat, setResultat] = useState(null);
-  const [historiqueSession, setHistoriqueSession] = useState([]);
+  const [historiqueSession, setHistoriqueSession] = useState(chargerHistoriqueStocke);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [availableTitres, setAvailableTitres] = useState([]);
   const [cameraOpen, setCameraOpen] = useState(false);
@@ -71,6 +82,16 @@ function ScanValidation() {
   useEffect(() => {
     inputRef.current?.focus();
   }, [resultat]);
+
+  // Persiste l'historique de session : un rafraîchissement de page ne doit
+  // pas faire disparaître les contrôles déjà effectués.
+  useEffect(() => {
+    try {
+      localStorage.setItem(HISTORIQUE_STORAGE_KEY, JSON.stringify(historiqueSession));
+    } catch {
+      // Stockage indisponible (navigation privée, quota) : tant pis, pas bloquant.
+    }
+  }, [historiqueSession]);
 
   const handleScan = async (codeToScan) => {
     const raw = (codeToScan || code).trim();
@@ -269,8 +290,6 @@ function ScanValidation() {
               </button>
             </div>
           </div>
-
-          <p className="scan-hint">Compatible douchette optique, lecteur laser et saisie manuelle.</p>
         </form>
 
         {availableTitres.length > 0 && (
@@ -322,7 +341,13 @@ function ScanValidation() {
 
       {historiqueSession.length > 0 && (
         <section className="table-card">
-          <h3 className="stats-card-title">Derniers contrôles de la session</h3>
+          <div className="stats-card-header" style={{ justifyContent: 'space-between' }}>
+            <h3 className="stats-card-title">Derniers contrôles de la session</h3>
+            <button type="button" className="btn-secondary" onClick={() => setHistoriqueSession([])}>
+              <span className="material-symbols-outlined btn-icon">restart_alt</span>
+              Réinitialiser
+            </button>
+          </div>
           <div className="table-responsive">
             <table className="user-table">
               <thead>

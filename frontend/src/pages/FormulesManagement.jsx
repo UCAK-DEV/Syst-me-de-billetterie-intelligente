@@ -51,26 +51,20 @@ function FormulesManagement() {
     (f.description || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // L'erreur doit s'afficher dans la modale (là où l'admin agit), pas dans
+  // la bannière de page : on laisse FormuleModal l'attraper.
   const handleCreateFormule = async (payload) => {
-    try {
-      await createFormule(payload);
-      setIsCreateModalOpen(false);
-      setError(null);
-      fetchFormules();
-    } catch (err) {
-      setError(err.message);
-    }
+    await createFormule(payload);
+    setIsCreateModalOpen(false);
+    setError(null);
+    fetchFormules();
   };
 
   const handleUpdateFormule = async (payload) => {
-    try {
-      await updateFormule(editingFormule.id, payload);
-      setEditingFormule(null);
-      setError(null);
-      fetchFormules();
-    } catch (err) {
-      setError(err.message);
-    }
+    await updateFormule(editingFormule.id, payload);
+    setEditingFormule(null);
+    setError(null);
+    fetchFormules();
   };
 
   const runToggleActive = async (formule) => {
