@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Html5Qrcode } from 'html5-qrcode';
 import { scannerValidation, getTitres } from '../services/apiBilletterie';
 import { motifLabel, motifColors } from '../utils/motifsRefus';
+
+const QR_READER_ID = 'qr-reader-camera';
 
 // Bips sonores synthétisés natifs sans fichiers externes
 function playAudioFeedback(isSuccess) {
@@ -48,8 +51,12 @@ function ScanValidation() {
   const [historiqueSession, setHistoriqueSession] = useState([]);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [availableTitres, setAvailableTitres] = useState([]);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraError, setCameraError] = useState(null);
 
   const inputRef = useRef(null);
+  const html5QrRef = useRef(null);
+  const scanningRef = useRef(false);
 
   // Charger les titres disponibles pour faciliter les tests/démonstration rapide
   useEffect(() => {
@@ -117,6 +124,50 @@ function ScanValidation() {
     }
   };
 
+  // Démarre/arrête la caméra selon cameraOpen. La lecture continue tant que
+  // la caméra est ouverte, avec un verrou (scanningRef) pour ne pas lancer
+  // deux validations pour le même QR Code détecté sur plusieurs frames.
+  useEffect(() => {
+    if (!cameraOpen) return undefined;
+
+    setCameraError(null);
+    const instance = new Html5Qrcode(QR_READER_ID);
+    html5QrRef.current = instance;
+    let cancelled = false;
+
+    instance
+      .start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 240, height: 240 } },
+        (decodedText) => {
+          if (scanningRef.current) return;
+          scanningRef.current = true;
+          handleScan(decodedText).finally(() => {
+            setTimeout(() => { scanningRef.current = false; }, 1500);
+          });
+        },
+        () => {} // erreurs de décodage frame par frame : silencieuses, normales
+      )
+      .catch((err) => {
+        if (cancelled) return;
+        setCameraError(
+          "Impossible d'accéder à la caméra. Vérifiez l'autorisation du navigateur ou utilisez la saisie manuelle."
+        );
+        setCameraOpen(false);
+        console.error(err);
+      });
+
+    return () => {
+      cancelled = true;
+      instance
+        .stop()
+        .then(() => instance.clear())
+        .catch(() => {});
+      html5QrRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cameraOpen]);
+
   const totalSession = historiqueSession.length;
   const autorisesSession = historiqueSession.filter((h) => h.autorise).length;
   const refusesSession = historiqueSession.filter((h) => !h.autorise).length;
@@ -131,18 +182,49 @@ function ScanValidation() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setSoundEnabled(!soundEnabled)}
-          className="btn-secondary"
-          title={soundEnabled ? 'Désactiver les signaux sonores' : 'Activer les signaux sonores'}
-        >
-          <span className="material-symbols-outlined btn-icon">
-            {soundEnabled ? 'volume_up' : 'volume_off'}
-          </span>
-          {soundEnabled ? 'Son activé' : 'Son muet'}
-        </button>
+        <div className="action-button-group">
+          <button
+            type="button"
+            onClick={() => setCameraOpen((v) => !v)}
+            className={cameraOpen ? 'btn-primary' : 'btn-secondary'}
+            title={cameraOpen ? 'Fermer la caméra' : 'Scanner avec la caméra'}
+          >
+            <span className="material-symbols-outlined btn-icon">
+              {cameraOpen ? 'photo_camera' : 'camera_alt'}
+            </span>
+            {cameraOpen ? 'Fermer la caméra' : 'Scanner avec la caméra'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            className="btn-secondary"
+            title={soundEnabled ? 'Désactiver les signaux sonores' : 'Activer les signaux sonores'}
+          >
+            <span className="material-symbols-outlined btn-icon">
+              {soundEnabled ? 'volume_up' : 'volume_off'}
+            </span>
+            {soundEnabled ? 'Son activé' : 'Son muet'}
+          </button>
+        </div>
       </section>
+
+      {cameraError && (
+        <div className="offline-notice">
+          <span className="material-symbols-outlined offline-icon">videocam_off</span>
+          <div>
+            <div className="offline-title">Caméra indisponible</div>
+            <div className="offline-text">{cameraError}</div>
+          </div>
+        </div>
+      )}
+
+      {cameraOpen && (
+        <section className="stats-card scan-camera-box">
+          <div id={QR_READER_ID} className="qr-camera-view" />
+          <p className="scan-hint">Cadrez le QR Code du titre de transport dans la zone de lecture.</p>
+        </section>
+      )}
 
       <section className="scan-stats-row">
         <div className="stats-card scan-stat">

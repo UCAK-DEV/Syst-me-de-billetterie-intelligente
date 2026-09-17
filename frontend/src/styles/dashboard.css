@@ -1682,6 +1682,22 @@ body {
   text-align: center;
 }
 
+.scan-camera-box {
+  text-align: center;
+}
+
+.qr-camera-view {
+  max-width: 360px;
+  margin: 0 auto;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid var(--border-glass);
+}
+
+.qr-camera-view video {
+  border-radius: 0.75rem;
+}
+
 .scan-form {
   max-width: 500px;
   margin: 0 auto;
