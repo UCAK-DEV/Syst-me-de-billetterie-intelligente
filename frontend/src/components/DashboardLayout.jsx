@@ -21,6 +21,7 @@ const COMMAND_ENTRIES = [
   { to: '/abonnements', icon: 'card_membership', label: 'Abonnements', role: 'Administrateur', keywords: 'souscription' },
   { to: '/formules', icon: 'receipt_long', label: 'Formules', role: 'Administrateur' },
   { to: '/users', icon: 'group', label: 'Utilisateurs', role: 'Administrateur', keywords: 'comptes clients agents' },
+  { to: '/audit', icon: 'shield', label: "Piste d'audit", role: 'Administrateur' },
   { to: '/mes-titres', icon: 'confirmation_number', label: 'Mes titres', role: 'Client', keywords: 'qr code voyage' },
   { to: '/profile', icon: 'account_circle', label: 'Mon profil', role: 'Client' },
 ];
@@ -183,6 +184,7 @@ function DashboardLayout() {
               <div className="sidebar-section">
                 <span className="sidebar-section-title">Administration</span>
                 <NavLink to="/users" icon="group" label="Utilisateurs" active={currentPath === '/users'} />
+                <NavLink to="/audit" icon="shield" label="Piste d'audit" active={currentPath === '/audit'} />
               </div>
             </>
           )}

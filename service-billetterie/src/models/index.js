@@ -1,6 +1,7 @@
 import sequelize from '../config/database.js';
 import TitreTransport from './TitreTransport.js';
 import Validation from './Validation.js';
+import AuditLog from './AuditLog.js';
 
 // Relations
 TitreTransport.hasMany(Validation, {
@@ -14,10 +15,11 @@ Validation.belongsTo(TitreTransport, {
   as: 'titre',
 });
 
-export { sequelize, TitreTransport, Validation };
+export { sequelize, TitreTransport, Validation, AuditLog };
 
 export default {
   sequelize,
   TitreTransport,
   Validation,
+  AuditLog,
 };

@@ -90,6 +90,12 @@ export async function getValidation(id) {
   return request(`/validations/${id}`);
 }
 
+// --- Piste d'audit ---
+
+export async function getAudits(params = {}) {
+  return request(`/audit${toQueryString(params)}`);
+}
+
 // --- Tableau de bord et Statistiques ---
 
 export async function getStatsBilletterie() {

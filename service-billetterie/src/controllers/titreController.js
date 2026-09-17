@@ -1,8 +1,11 @@
 import { Op } from 'sequelize';
 import { TitreTransport } from '../models/index.js';
 import { genererTokenUnique, genererQRCodeImage } from '../services/qrCodeService.js';
+import { enregistrerAudit } from '../services/auditService.js';
 import { TYPES_TITRE, STATUTS_TITRE } from '../utils/constants.js';
 import logger from '../config/logger.js';
+
+const ipDeLaRequete = (req) => req.ip || req.connection.remoteAddress;
 
 /**
  * Contrôleur de gestion des titres de transport numériques et des QR Codes.
@@ -45,6 +48,16 @@ export const creerTitre = async (req, res) => {
       statut: 'ACTIF',
       dateCreation: new Date(),
       dateExpiration: dateExpiration || null,
+    });
+
+    await enregistrerAudit({
+      utilisateurId: req.user.id,
+      role: req.user.role,
+      action: 'GENERATION_TITRE',
+      ressourceType: 'TITRE',
+      ressourceId: titre.id,
+      details: { codeUnique, typeTitre, utilisateurId, abonnementId: abonnementId || null },
+      ipAdresse: ipDeLaRequete(req),
     });
 
     logger.info(`Titre généré : ${titre.id} (${typeTitre}) pour le client ${utilisateurId}`);
@@ -120,6 +133,16 @@ export const changerStatutTitre = async (req, res) => {
     const ancienStatut = titre.statut;
     titre.statut = statut;
     await titre.save();
+
+    await enregistrerAudit({
+      utilisateurId: req.user.id,
+      role: req.user.role,
+      action: statut === 'DESACTIVE' ? 'DESACTIVATION_TITRE' : 'ACTIVATION_TITRE',
+      ressourceType: 'TITRE',
+      ressourceId: titre.id,
+      details: { ancienStatut, nouveauStatut: statut },
+      ipAdresse: ipDeLaRequete(req),
+    });
 
     logger.info(`Statut titre #${titre.id} changé de ${ancienStatut} à ${statut} par ${req.user.id}`);
     return res.status(200).json({ titre });

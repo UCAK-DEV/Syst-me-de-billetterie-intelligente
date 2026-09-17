@@ -3,7 +3,7 @@
 Application de gestion pour un système de billetterie de transport, composée de trois microservices indépendants et communicants :
 - **Service Utilisateurs** (`backend/`) : authentification, gestion des comptes (administrateurs, agents, clients), profil.
 - **Service Abonnements** (`service-abonnements/`) : catalogue de formules, souscription, consommation des voyages, cycle de vie d'un abonnement. Base MySQL dédiée.
-- **Service Billetterie** (`service-billetterie/`) : génération des titres numériques et QR Codes, validation en temps réel, gestion de la concurrence distribuée, journalisation technique. Base PostgreSQL dédiée.
+- **Service Billetterie** (`service-billetterie/`) : génération des titres numériques et QR Codes, validation en temps réel, gestion de la concurrence distribuée, journalisation technique et piste d'audit inviolable. Base PostgreSQL dédiée.
 
 Les services ne partagent aucune base de données commune : la communication se fait exclusivement par API REST et le jeton JWT.
 
@@ -68,13 +68,14 @@ Bases de données
 - Suspension, réactivation, résiliation définitive, renouvellement
 - Vérification du droit à voyager (`GET /api/abonnements/validite/:utilisateurId`)
 
-### Service Billetterie (QR Code, Contrôle, Thèmes)
+### Service Billetterie (QR Code, Contrôle, Audit, Thèmes)
 - **Génération de QR Codes** : tokens uniques non falsifiables sans exposition de données personnelles sensibles
 - **Poste de scan & contrôle en temps réel** : grand retour visuel (VERT pour Autorisé, ROUGE pour Refusé) avec signal sonore et historique de session
 - **Règles métier par type de titre** :
   - *Ticket simple* : consommation atomique au 1er passage, refus automatique au 2nd (`TICKET_DEJA_UTILISE`)
   - *Abonnements limité / illimité* : décompte via le Service Abonnements
 - **Gestion de la concurrence** : Verrou transactionnel PostgreSQL (`LOCK.UPDATE`) empêchant deux validations simultanées du même titre ou dernier voyage
+- **Piste d'audit inviolable** : journal append-only de toutes les actions sensibles (génération, activation/désactivation d'un titre, chaque scan — autorisé ou refusé), avec auteur, rôle, ressource concernée, horodatage et résultat
 - **Thème clair et sombre** : Switch instantané avec persistance du choix utilisateur
 - **Tableau de bord décisionnel** : KPIs, taux d'autorisation, typologie et analyse des motifs de refus
 
@@ -132,16 +133,17 @@ Bases de données
 | POST | /api/billetterie/validations/scan | administrateur, agent | scan et validation en temps réel d'un QR code |
 | GET | /api/billetterie/validations | administrateur, agent | historique des passages autorisés et refusés |
 | GET | /api/billetterie/validations/:id | administrateur, agent | fiche d'une validation |
+| GET | /api/billetterie/audit | administrateur | consultation de la piste d'audit |
 | GET | /api/billetterie/dashboard/stats | administrateur | indicateurs d'affluence et statistiques |
 
 ## Tests
 
 - Backend Service Utilisateurs : 85 tests, `node --test`
 - Backend Service Abonnements : 75 tests, `node --test`
-- Backend Service Billetterie : 30 tests, `node --test` (incluant test de concurrence)
+- Backend Service Billetterie : 36 tests, `node --test` (incluant test de concurrence et audit)
 - Frontend : 43 tests unitaires, `jest`
 
-Total : **233 tests automatisés**, tous passants.
+Total : **239 tests automatisés**, tous passants.
 
 ```bash
 # Lancer tous les tests du projet :
@@ -175,7 +177,7 @@ Démarre simultanément les 4 services :
 
 ## Documentation
 
-- [PLAN-SERVICE-BILLETTERIE.md](PLAN-SERVICE-BILLETTERIE.md) — contrat d'API, modèle PostgreSQL, concurrence et règles du Service Billetterie
+- [PLAN-SERVICE-BILLETTERIE.md](PLAN-SERVICE-BILLETTERIE.md) — contrat d'API, modèle PostgreSQL, concurrence, audit et règles du Service Billetterie
 - [PLAN-SERVICE-ABONNEMENTS.md](PLAN-SERVICE-ABONNEMENTS.md) — contrat d'API et architecture du Service Abonnements
 - [docs/service-billetterie.md](docs/service-billetterie.md) — livrable Service Billetterie : fonctionnalités critiques, plan de tests, tableau de synthèse, justifications
 - [docs/service-abonnements.md](docs/service-abonnements.md) — livrable Service Abonnements

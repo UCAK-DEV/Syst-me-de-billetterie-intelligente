@@ -1,10 +1,10 @@
 import './setupEnv.js';
 import 'dotenv/config';
 import jwt from 'jsonwebtoken';
-import { sequelize, TitreTransport, Validation } from '../src/models/index.js';
+import { sequelize, TitreTransport, Validation, AuditLog } from '../src/models/index.js';
 import { genererTokenUnique, genererQRCodeImage } from '../src/services/qrCodeService.js';
 
-export { sequelize, TitreTransport, Validation };
+export { sequelize, TitreTransport, Validation, AuditLog };
 
 export const preparerBase = async () => {
   await sequelize.sync({ force: true });
@@ -12,6 +12,7 @@ export const preparerBase = async () => {
 
 export const viderBase = async () => {
   await Validation.destroy({ where: {}, truncate: true, cascade: true });
+  await AuditLog.destroy({ where: {}, truncate: true, cascade: true });
   await TitreTransport.destroy({ where: {}, truncate: true, cascade: true });
 };
 

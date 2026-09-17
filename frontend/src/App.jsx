@@ -15,6 +15,7 @@ import ScanValidation from './pages/ScanValidation.jsx';
 import TitresManagement from './pages/TitresManagement.jsx';
 import ValidationsHistory from './pages/ValidationsHistory.jsx';
 import BilletterieStats from './pages/BilletterieStats.jsx';
+import AuditLogs from './pages/AuditLogs.jsx';
 import EspaceClient from './pages/EspaceClient.jsx';
 
 function App() {
@@ -41,10 +42,11 @@ function App() {
             <Route path="stats" element={<AbonnementStats />} />
             <Route path="subscriptions" element={<Navigate to="/abonnements" replace />} />
 
-            {/* Service Billetterie (QR Code, Contrôle, Stats) */}
+            {/* Service Billetterie (QR Code, Contrôle, Audit, Stats) */}
             <Route path="scan" element={<ScanValidation />} />
             <Route path="titres" element={<TitresManagement />} />
             <Route path="validations" element={<ValidationsHistory />} />
+            <Route path="audit" element={<AuditLogs />} />
             <Route path="billetterie-stats" element={<BilletterieStats />} />
             <Route path="mes-titres" element={<EspaceClient />} />
           </Route>

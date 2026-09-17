@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../services/api';
 import { getSouscriptions, createSouscription } from '../services/apiAbonnements';
 import SouscriptionModal from '../components/SouscriptionModal';
@@ -30,6 +30,8 @@ const STATUT_COLORS = {
 
 function AbonnementsManagement() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const expireSous = searchParams.get('expireSous');
   const [abonnements, setAbonnements] = useState([]);
   const [clientsById, setClientsById] = useState({});
   const [isLoadingList, setIsLoadingList] = useState(false);
@@ -61,6 +63,7 @@ function AbonnementsManagement() {
       const params = {};
       if (typeFilter !== 'Tous') params.type = typeFilter;
       if (statutFilter !== 'Tous') params.statut = statutFilter;
+      if (expireSous) params.expireSous = expireSous;
       const data = await getSouscriptions(params);
       setAbonnements(data);
     } catch (err) {
@@ -68,7 +71,7 @@ function AbonnementsManagement() {
     } finally {
       setIsLoadingList(false);
     }
-  }, [typeFilter, statutFilter]);
+  }, [typeFilter, statutFilter, expireSous]);
 
   useEffect(() => {
     fetchAbonnements();
@@ -113,6 +116,24 @@ function AbonnementsManagement() {
             </button>
           </div>
         </section>
+
+        {expireSous && (
+          <div className="offline-notice">
+            <span className="material-symbols-outlined offline-icon">schedule</span>
+            <div>
+              <div className="offline-title">Abonnements expirant sous {expireSous} jours</div>
+              <div className="offline-text">Filtre actif depuis le tableau de bord.</div>
+            </div>
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{ marginLeft: 'auto' }}
+              onClick={() => setSearchParams({})}
+            >
+              Retirer le filtre
+            </button>
+          </div>
+        )}
 
         {error && (
           <div className="offline-notice">

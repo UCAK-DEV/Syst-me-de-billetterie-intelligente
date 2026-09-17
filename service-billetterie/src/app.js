@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import titreRoutes from './routes/titreRoutes.js';
 import validationRoutes from './routes/validationRoutes.js';
+import auditRoutes from './routes/auditRoutes.js';
 import statistiquesRoutes from './routes/statistiquesRoutes.js';
 import logger from './config/logger.js';
 import { apiLimiter } from './middleware/rateLimiter.js';
@@ -41,6 +42,7 @@ app.get('/api/billetterie/status', (_req, res) => {
 // Endpoints métier
 app.use('/api/billetterie/titres', titreRoutes);
 app.use('/api/billetterie/validations', validationRoutes);
+app.use('/api/billetterie/audit', auditRoutes);
 app.use('/api/billetterie/dashboard', statistiquesRoutes);
 
 // Ressource introuvable

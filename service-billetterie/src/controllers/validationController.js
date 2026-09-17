@@ -19,6 +19,8 @@ export const scannerValidation = async (req, res) => {
     const resultat = await validerScanQRCode({
       rawCode: code,
       agentId: req.user.id,
+      agentRole: req.user.role,
+      ipAdresse: req.ip || req.connection.remoteAddress,
       token: req.headers.authorization,
     });
 
