@@ -16,8 +16,10 @@ jobs:
         ports:
           - 27017:27017
         options: >-
-          0
-          
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })' || mongosh --eval 'db.adminCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     defaults:
       run:
         working-directory: backend
