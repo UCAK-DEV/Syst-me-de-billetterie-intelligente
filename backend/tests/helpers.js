@@ -24,7 +24,7 @@ import User from '../src/models/User.js';
 // parallèle. On suffixe donc le nom de la base par le PID : sans cela, un
 // fichier supprimerait la base pendant qu'un autre l'utilise encore.
 const BASE_MONGO_URI =
-  process.env.MONGO_URI_TEST || 'mongodb://127.0.0.1:27017/billetterie_test';
+  process.env.MONGO_URI_TEST || process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/billetterie_test';
 const TEST_MONGO_URI = `${BASE_MONGO_URI}_${process.pid}`;
 
 // Secret fixe pour que les jetons soient vérifiables pendant les tests

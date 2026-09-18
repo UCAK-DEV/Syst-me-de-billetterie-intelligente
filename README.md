@@ -136,19 +136,31 @@ Bases de données
 | GET | /api/billetterie/audit | administrateur | consultation de la piste d'audit |
 | GET | /api/billetterie/dashboard/stats | administrateur | indicateurs d'affluence et statistiques |
 
-## Tests
+## Tests & Intégration Continue (CI)
 
 - Backend Service Utilisateurs : 85 tests, `node --test`
-- Backend Service Abonnements : 75 tests, `node --test`
-- Backend Service Billetterie : 36 tests, `node --test` (incluant test de concurrence et audit)
+- Backend Service Abonnements : 76 tests, `node --test`
+- Backend Service Billetterie : 36 tests, `node --test` (incluant test de concurrence pessimiste et audit)
 - Frontend : 43 tests unitaires, `jest`
 
-Total : **239 tests automatisés**, tous passants.
+Total : **240 tests automatisés**, tous passants (0 échec).
 
 ```bash
 # Lancer tous les tests du projet :
-npm test --prefix backend && npm test --prefix service-abonnements && npm test --prefix service-billetterie && npm test --prefix frontend
+npm test --prefix backend && npm test --prefix service-abonnements && npm test --prefix service-billetterie && npm test --prefix frontend -- --watchAll=false
 ```
+
+### Pipeline GitHub Actions (`.github/workflows/ci.yml`)
+
+Le projet intègre un pipeline CI automatique déclenché sur chaque `push` et `pull_request` sur les branches `main` et `develop` :
+1. **`test-backend`** : Récupère le code, installe Node.js 22, exécute `npm ci`, monte un conteneur de service MongoDB et lance l'ensemble de la suite de tests automatisés.
+2. **`build-frontend`** : Récupère le code, installe Node.js 22, exécute `npm ci` et valide la compilation de production avec `npm run build`.
+
+#### Secrets GitHub à configurer (Repository Settings > Secrets and variables > Actions) :
+- `MONGO_URI_TEST` : Chaîne de connexion à la base MongoDB de test (ex: MongoDB Atlas ou conteneur local).
+- `JWT_SECRET` : Clé secrète pour signer les jetons JWT de test.
+- `VITE_API_URL` : URL de l'API backend utilisée par le frontend.
+- `EMAIL_USER` / `EMAIL_PASS` : Identifiants SMTP pour les tests d'envoi d'e-mails.
 
 ## Installation et démarrage
 

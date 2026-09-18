@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { getValidations } from '../services/apiBilletterie';
 import { api } from '../services/api';
 import { motifLabel, motifColors } from '../utils/motifsRefus';
@@ -18,16 +19,42 @@ const MOTIFS_OPTIONS = [
 ];
 
 function ValidationsHistory() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlResultat = searchParams.get('resultat');
+  const urlMotif = searchParams.get('motifRefus') || searchParams.get('motif');
+  const urlDate = searchParams.get('date');
+
   const [validations, setValidations] = useState([]);
   const [agents, setAgents] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // Filtres
-  const [resultatFilter, setResultatFilter] = useState('');
-  const [motifFilter, setMotifFilter] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
+  const [resultatFilter, setResultatFilter] = useState(urlResultat || '');
+  const [motifFilter, setMotifFilter] = useState(urlMotif || '');
+  const [dateFilter, setDateFilter] = useState(urlDate || '');
   const [search, setSearch] = useState('');
+
+  // Synchronisation avec l'URL
+  useEffect(() => {
+    if (urlResultat) {
+      setResultatFilter(urlResultat);
+    } else if (!searchParams.has('resultat')) {
+      setResultatFilter('');
+    }
+
+    if (urlMotif) {
+      setMotifFilter(urlMotif);
+    } else if (!searchParams.has('motifRefus') && !searchParams.has('motif')) {
+      setMotifFilter('');
+    }
+
+    if (urlDate) {
+      setDateFilter(urlDate);
+    } else if (!searchParams.has('date')) {
+      setDateFilter('');
+    }
+  }, [urlResultat, urlMotif, urlDate, searchParams]);
 
   const loadValidations = useCallback(async () => {
     setLoading(true);
@@ -79,6 +106,33 @@ function ValidationsHistory() {
             <div className="offline-title">Une erreur est survenue</div>
             <div className="offline-text">{error}</div>
           </div>
+        </div>
+      )}
+
+      {(urlResultat || urlMotif || urlDate) && (
+        <div className="offline-notice" style={{ marginBottom: '1.25rem' }}>
+          <span className="material-symbols-outlined offline-icon">filter_alt</span>
+          <div>
+            <div className="offline-title">
+              Filtre actif : {urlResultat && `Résultat : ${urlResultat === 'AUTORISE' ? 'Autorisé' : 'Refusé'}`}
+              {urlMotif && `${urlResultat ? ' · ' : ''}Motif : ${motifLabel(urlMotif)}`}
+              {urlDate && `${urlResultat || urlMotif ? ' · ' : ''}Date : ${formatDateFR(urlDate)}`}
+            </div>
+            <div className="offline-text">Filtre ciblé appliqué depuis le tableau de bord.</div>
+          </div>
+          <button
+            type="button"
+            className="btn-secondary"
+            style={{ marginLeft: 'auto' }}
+            onClick={() => {
+              setSearchParams({});
+              setResultatFilter('');
+              setMotifFilter('');
+              setDateFilter('');
+            }}
+          >
+            Afficher tout
+          </button>
         </div>
       )}
 

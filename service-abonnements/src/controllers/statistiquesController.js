@@ -39,6 +39,12 @@ export const obtenirStatistiques = async (req, res) => {
     let revenuTotal = 0;
     let expirentSous7Jours = 0;
 
+    // Ventes et revenu par formule : identifie quelle formule est réellement
+    // rentable, une décision commerciale que les totaux globaux ne permettent
+    // pas de prendre (deux formules peuvent avoir le même total abonnements
+    // mais un revenu très différent).
+    const formulesParId = new Map();
+
     const limite = joursAvant(SEUIL_EXPIRATION_PROCHE);
     const aujourdHui = joursAvant(0);
 
@@ -49,7 +55,19 @@ export const obtenirStatistiques = async (req, res) => {
 
       // Chaque souscription correspond à une vente : le chiffre reste acquis
       // même si l'abonnement a depuis expiré ou été résilié.
-      revenuTotal += Number(abonnement.Formule.tarif);
+      const tarif = Number(abonnement.Formule.tarif);
+      revenuTotal += tarif;
+
+      const entree = formulesParId.get(abonnement.Formule.id) || {
+        id: abonnement.Formule.id,
+        nom: abonnement.Formule.nom,
+        type: abonnement.Formule.type,
+        ventes: 0,
+        revenu: 0,
+      };
+      entree.ventes += 1;
+      entree.revenu += tarif;
+      formulesParId.set(abonnement.Formule.id, entree);
 
       // Seuls les abonnements encore utilisables méritent une relance.
       if (
@@ -61,11 +79,16 @@ export const obtenirStatistiques = async (req, res) => {
       }
     }
 
+    // Classement décroissant par revenu : la formule la plus vendue n'est
+    // pas toujours la plus rentable (tarif faible sur gros volume).
+    const parFormule = [...formulesParId.values()].sort((a, b) => b.revenu - a.revenu);
+
     return res.status(200).json({
       stats: {
         total: abonnements.length,
         parStatut,
         parType,
+        parFormule,
         voyagesConsommesTotal,
         expirentSous7Jours,
         revenuTotal,

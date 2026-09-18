@@ -69,7 +69,15 @@ class Abonnement extends Model {
       utilisateurId: v.utilisateurId,
       // La formule n'est présente que si la requête l'a jointe (include)
       formule: this.Formule
-        ? { id: this.Formule.id, nom: this.Formule.nom, type: this.Formule.type }
+        ? {
+            id: this.Formule.id,
+            nom: this.Formule.nom,
+            type: this.Formule.type,
+            // Montant réellement associé à la formule souscrite. Il doit être
+            // exposé ici pour que les listes de souscriptions puissent afficher
+            // le prix sans requête supplémentaire au catalogue.
+            tarif: this.Formule.tarif === null ? null : Number(this.Formule.tarif),
+          }
         : undefined,
       dateDebut: v.dateDebut,
       dateExpiration: v.dateExpiration,

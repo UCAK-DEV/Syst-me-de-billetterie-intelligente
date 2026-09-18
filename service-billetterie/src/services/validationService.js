@@ -54,7 +54,7 @@ const enregistrerAudit = ({ agentId, agentRole, valId, resultat, motifRefus, det
  * garantit l'idempotence des transactions et journalise l'historique complet
  * ainsi que la piste d'audit (succès et refus).
  */
-export const validerScanQRCode = async ({ rawCode, agentId, agentRole, ipAdresse, token }) => {
+export const validerScanQRCode = async ({ rawCode, agentId, agentRole, ipAdresse, token, typePassage = 'ENTREE' }) => {
   const now = new Date();
   const dateStr = now.toISOString().split('T')[0];
   const heureStr = now.toTimeString().split(' ')[0];
@@ -78,7 +78,7 @@ export const validerScanQRCode = async ({ rawCode, agentId, agentRole, ipAdresse
 
     await enregistrerAudit({
       agentId, agentRole, valId, resultat: 'REFUSE', motifRefus: 'QR_CODE_INCONNU',
-      details: { codeScanne: rawCode || '' }, ipAdresse,
+      details: { codeScanne: rawCode || '', typePassage }, ipAdresse,
     });
 
     logger.warn(`Scan refusé : QR code vide ou invalide (Validation: ${valId})`);
@@ -120,7 +120,7 @@ export const validerScanQRCode = async ({ rawCode, agentId, agentRole, ipAdresse
 
       await enregistrerAudit({
         agentId, agentRole, valId, resultat: 'REFUSE', motifRefus: 'QR_CODE_INCONNU',
-        details: { codeScanne: codeUnique }, ipAdresse,
+        details: { codeScanne: codeUnique, typePassage }, ipAdresse,
       }, t);
 
       logger.warn(`Scan refusé : Titre introuvable pour code ${codeUnique}`);
@@ -153,7 +153,7 @@ export const validerScanQRCode = async ({ rawCode, agentId, agentRole, ipAdresse
 
       await enregistrerAudit({
         agentId, agentRole, valId, resultat: 'REFUSE', motifRefus: 'QR_CODE_DESACTIVE',
-        details: { titreId: titre.id }, ipAdresse,
+        details: { titreId: titre.id, voyageurId: titre.utilisateurId, codeScanne: codeUnique, typePassage }, ipAdresse,
       }, t);
 
       logger.warn(`Scan refusé : Titre désactivé (Titre: ${titre.id})`);
@@ -191,7 +191,7 @@ export const validerScanQRCode = async ({ rawCode, agentId, agentRole, ipAdresse
 
       await enregistrerAudit({
         agentId, agentRole, valId, resultat: 'REFUSE', motifRefus: 'ABONNEMENT_EXPIRE',
-        details: { titreId: titre.id, dateExpiration: titre.dateExpiration }, ipAdresse,
+        details: { titreId: titre.id, voyageurId: titre.utilisateurId, dateExpiration: titre.dateExpiration, codeScanne: codeUnique, typePassage }, ipAdresse,
       }, t);
 
       logger.warn(`Scan refusé : Titre expiré le ${titre.dateExpiration} (Titre: ${titre.id})`);
@@ -228,7 +228,7 @@ export const validerScanQRCode = async ({ rawCode, agentId, agentRole, ipAdresse
 
         await enregistrerAudit({
           agentId, agentRole, valId, resultat: 'REFUSE', motifRefus: 'TICKET_DEJA_UTILISE',
-          details: { titreId: titre.id, consommeLe: titre.consommeLe }, ipAdresse,
+          details: { titreId: titre.id, voyageurId: titre.utilisateurId, consommeLe: titre.consommeLe, codeScanne: codeUnique, typePassage }, ipAdresse,
         }, t);
 
         logger.warn(`Scan refusé : Ticket déjà utilisé (Titre: ${titre.id}, consommé le: ${titre.consommeLe})`);
@@ -264,7 +264,7 @@ export const validerScanQRCode = async ({ rawCode, agentId, agentRole, ipAdresse
 
       await enregistrerAudit({
         agentId, agentRole, valId, resultat: 'AUTORISE',
-        details: { typeTitre: 'TICKET_SIMPLE', titreId: titre.id }, ipAdresse,
+        details: { typeTitre: 'TICKET_SIMPLE', titreId: titre.id, voyageurId: titre.utilisateurId, codeScanne: codeUnique, typePassage }, ipAdresse,
       }, t);
 
       logger.info(`Scan autorisé : Ticket simple ${titre.id} consommé par agent ${agentId}`);
@@ -302,7 +302,7 @@ export const validerScanQRCode = async ({ rawCode, agentId, agentRole, ipAdresse
 
         await enregistrerAudit({
           agentId, agentRole, valId, resultat: 'REFUSE', motifRefus: 'AUCUN_TITRE_VALIDE',
-          details: { titreId: titre.id }, ipAdresse,
+          details: { titreId: titre.id, voyageurId: titre.utilisateurId, codeScanne: codeUnique, typePassage }, ipAdresse,
         }, t);
 
         return {
@@ -341,7 +341,7 @@ export const validerScanQRCode = async ({ rawCode, agentId, agentRole, ipAdresse
 
         await enregistrerAudit({
           agentId, agentRole, valId, resultat: 'REFUSE', motifRefus,
-          details: { titreId: titre.id, abonnementId: titre.abonnementId, messageAbonnements: reponseAbo.message },
+          details: { titreId: titre.id, voyageurId: titre.utilisateurId, abonnementId: titre.abonnementId, messageAbonnements: reponseAbo.message, codeScanne: codeUnique, typePassage },
           ipAdresse,
         }, t);
 
@@ -373,7 +373,7 @@ export const validerScanQRCode = async ({ rawCode, agentId, agentRole, ipAdresse
 
       await enregistrerAudit({
         agentId, agentRole, valId, resultat: 'AUTORISE',
-        details: { typeTitre: titre.typeTitre, titreId: titre.id, abonnementId: titre.abonnementId },
+        details: { typeTitre: titre.typeTitre, titreId: titre.id, voyageurId: titre.utilisateurId, abonnementId: titre.abonnementId, codeScanne: codeUnique, typePassage },
         ipAdresse,
       }, t);
 

@@ -50,6 +50,7 @@ describe('API — Souscriptions', () => {
       assert.equal(abonnement.statut, 'ACTIF');
       // Le contrat impose la formule imbriquée dans la réponse.
       assert.equal(abonnement.formule.type, 'LIMITE');
+      assert.equal(abonnement.formule.tarif, 15000);
     });
 
     test('refuse une saisie invalide ou une formule inconnue', async () => {

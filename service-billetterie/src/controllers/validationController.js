@@ -9,7 +9,7 @@ import logger from '../config/logger.js';
 
 // POST /api/billetterie/validations/scan
 export const scannerValidation = async (req, res) => {
-  const { code } = req.body;
+  const { code, typePassage = 'ENTREE' } = req.body;
 
   if (!code || typeof code !== 'string') {
     return res.status(400).json({ message: 'Le code QR scanné (code) est obligatoire' });
@@ -22,6 +22,7 @@ export const scannerValidation = async (req, res) => {
       agentRole: req.user.role,
       ipAdresse: req.ip || req.connection.remoteAddress,
       token: req.headers.authorization,
+      typePassage,
     });
 
     return res.status(200).json(resultat);

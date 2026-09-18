@@ -10,10 +10,11 @@ import logger from '../config/logger.js';
 // GET /api/billetterie/audit
 export const listerAudits = async (req, res) => {
   try {
-    const { action, utilisateurId, ressourceType, date, recherche } = req.query;
+    const { action, utilisateurId, ressourceType, date, recherche, resultat } = req.query;
     const where = {};
 
     if (action) where.action = action;
+    if (resultat) where.resultat = resultat;
     if (utilisateurId) where.utilisateurId = utilisateurId;
     if (ressourceType) where.ressourceType = ressourceType;
     if (date) {

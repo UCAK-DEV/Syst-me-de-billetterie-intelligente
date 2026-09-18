@@ -76,6 +76,16 @@ describe('API — Tableau de bord', () => {
 
     assert.equal(stats.voyagesConsommesTotal, 50);
     assert.equal(stats.revenuTotal, 15000 * 3 + 500 + 50000);
+
+    // Classée par revenu décroissant : illimitée (50 000) > limitée (45 000) > ticket (500).
+    assert.equal(stats.parFormule.length, 3);
+    assert.equal(stats.parFormule[0].nom, illimitee.nom);
+    assert.equal(stats.parFormule[0].revenu, 50000);
+    assert.equal(stats.parFormule[0].ventes, 1);
+    assert.equal(stats.parFormule[1].nom, limitee.nom);
+    assert.equal(stats.parFormule[1].revenu, 15000 * 3);
+    assert.equal(stats.parFormule[1].ventes, 3);
+    assert.equal(stats.parFormule[2].nom, ticket.nom);
   });
 
   test('compte les abonnements à relancer, et eux seuls', async () => {

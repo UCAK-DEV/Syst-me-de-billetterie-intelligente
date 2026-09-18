@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { getFormules, createFormule, updateFormule, setFormuleActive } from '../services/apiAbonnements';
 import FormuleModal from '../components/FormuleModal';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -11,12 +12,37 @@ const TYPE_LABELS = {
 };
 
 function FormulesManagement() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlType = searchParams.get('type');
+  const urlStatus = searchParams.get('status') || searchParams.get('actif');
+
   const [formules, setFormules] = useState([]);
   const [isLoadingList, setIsLoadingList] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [typeFilter, setTypeFilter] = useState('Tous');
-  const [statusFilter, setStatusFilter] = useState('Tous');
+  const [typeFilter, setTypeFilter] = useState(urlType || 'Tous');
+  const [statusFilter, setStatusFilter] = useState(
+    urlStatus === 'true' || urlStatus === 'Actif'
+      ? 'Actif'
+      : urlStatus === 'false' || urlStatus === 'Inactif'
+        ? 'Inactif'
+        : 'Tous'
+  );
+
+  useEffect(() => {
+    if (urlType) {
+      setTypeFilter(urlType);
+    } else if (!searchParams.has('type')) {
+      setTypeFilter('Tous');
+    }
+
+    if (urlStatus !== null && urlStatus !== undefined) {
+      if (urlStatus === 'true' || urlStatus === 'Actif') setStatusFilter('Actif');
+      else if (urlStatus === 'false' || urlStatus === 'Inactif') setStatusFilter('Inactif');
+    } else if (!searchParams.has('status') && !searchParams.has('actif')) {
+      setStatusFilter('Tous');
+    }
+  }, [urlType, urlStatus, searchParams]);
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingFormule, setEditingFormule] = useState(null);
@@ -113,6 +139,31 @@ function FormulesManagement() {
               <div className="offline-title">Une erreur est survenue</div>
               <div className="offline-text">{error}</div>
             </div>
+          </div>
+        )}
+
+        {(urlType || urlStatus) && (
+          <div className="offline-notice" style={{ marginBottom: '1.25rem' }}>
+            <span className="material-symbols-outlined offline-icon">filter_alt</span>
+            <div>
+              <div className="offline-title">
+                Filtre actif : {urlType && `Type : ${TYPE_LABELS[urlType] || urlType}`}
+                {urlStatus && `${urlType ? ' · ' : ''}Statut : ${statusFilter}`}
+              </div>
+              <div className="offline-text">Filtre ciblé appliqué depuis le tableau de bord.</div>
+            </div>
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{ marginLeft: 'auto' }}
+              onClick={() => {
+                setSearchParams({});
+                setTypeFilter('Tous');
+                setStatusFilter('Tous');
+              }}
+            >
+              Afficher tout
+            </button>
           </div>
         )}
 

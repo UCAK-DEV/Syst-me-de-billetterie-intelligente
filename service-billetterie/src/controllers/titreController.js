@@ -140,7 +140,7 @@ export const changerStatutTitre = async (req, res) => {
       action: statut === 'DESACTIVE' ? 'DESACTIVATION_TITRE' : 'ACTIVATION_TITRE',
       ressourceType: 'TITRE',
       ressourceId: titre.id,
-      details: { ancienStatut, nouveauStatut: statut },
+      details: { ancienStatut, nouveauStatut: statut, voyageurId: titre.utilisateurId },
       ipAdresse: ipDeLaRequete(req),
     });
 

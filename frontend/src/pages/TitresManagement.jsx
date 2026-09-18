@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { getTitres, changerStatutTitre } from '../services/apiBilletterie';
 import { api, getStoredUser } from '../services/api';
 import CreateTitreModal from '../components/CreateTitreModal';
@@ -26,6 +27,10 @@ const STATUT_COLORS = {
 };
 
 function TitresManagement() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlStatut = searchParams.get('statut');
+  const urlType = searchParams.get('typeTitre') || searchParams.get('type');
+
   const [titres, setTitres] = useState([]);
   const [clients, setClients] = useState({});
   const [loading, setLoading] = useState(true);
@@ -33,9 +38,24 @@ function TitresManagement() {
   const [confirmDialog, setConfirmDialog] = useState(null);
 
   // Filtres
-  const [statutFilter, setStatutFilter] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
+  const [statutFilter, setStatutFilter] = useState(urlStatut || '');
+  const [typeFilter, setTypeFilter] = useState(urlType || '');
   const [search, setSearch] = useState('');
+
+  // Synchronisation avec l'URL
+  useEffect(() => {
+    if (urlStatut) {
+      setStatutFilter(urlStatut);
+    } else if (!searchParams.has('statut')) {
+      setStatutFilter('');
+    }
+
+    if (urlType) {
+      setTypeFilter(urlType);
+    } else if (!searchParams.has('typeTitre') && !searchParams.has('type')) {
+      setTypeFilter('');
+    }
+  }, [urlStatut, urlType, searchParams]);
 
   // Modales
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -163,6 +183,31 @@ function TitresManagement() {
             <div className="offline-title">Une erreur est survenue</div>
             <div className="offline-text">{error}</div>
           </div>
+        </div>
+      )}
+
+      {(urlStatut || urlType) && (
+        <div className="offline-notice" style={{ marginBottom: '1.25rem' }}>
+          <span className="material-symbols-outlined offline-icon">filter_alt</span>
+          <div>
+            <div className="offline-title">
+              Filtre actif : {urlStatut && `Statut : ${urlStatut}`}
+              {urlType && `${urlStatut ? ' · ' : ''}Type : ${TYPE_LABELS[urlType] || urlType}`}
+            </div>
+            <div className="offline-text">Filtre ciblé appliqué depuis le tableau de bord.</div>
+          </div>
+          <button
+            type="button"
+            className="btn-secondary"
+            style={{ marginLeft: 'auto' }}
+            onClick={() => {
+              setSearchParams({});
+              setStatutFilter('');
+              setTypeFilter('');
+            }}
+          >
+            Afficher tout
+          </button>
         </div>
       )}
 

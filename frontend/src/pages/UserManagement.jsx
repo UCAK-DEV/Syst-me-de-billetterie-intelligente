@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../services/api';
 import CreateUserModal from '../components/CreateUserModal';
 import EditUserModal from '../components/EditUserModal';
@@ -9,6 +10,10 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import './UserManagement.css';
 
 function UserManagement() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlRole = searchParams.get('role');
+  const urlStatus = searchParams.get('status') || searchParams.get('statut');
+
   const [users, setUsers] = useState([]);
   const [selectedUserIds, setSelectedUserIds] = useState([]);
   const [isOffline, setIsOffline] = useState(false);
@@ -19,8 +24,23 @@ function UserManagement() {
   
   // Search & Filters state
   const [searchQuery, setSearchQuery] = useState('');
-  const [roleFilter, setRoleFilter] = useState('Tous');
-  const [statusFilter, setStatusFilter] = useState('Tous');
+  const [roleFilter, setRoleFilter] = useState(urlRole || 'Tous');
+  const [statusFilter, setStatusFilter] = useState(urlStatus || 'Tous');
+
+  // Synchronisation avec l'URL
+  useEffect(() => {
+    if (urlRole) {
+      setRoleFilter(urlRole);
+    } else if (!searchParams.has('role')) {
+      setRoleFilter('Tous');
+    }
+
+    if (urlStatus) {
+      setStatusFilter(urlStatus);
+    } else if (!searchParams.has('status') && !searchParams.has('statut')) {
+      setStatusFilter('Tous');
+    }
+  }, [urlRole, urlStatus, searchParams]);
   
   // Modals state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -354,6 +374,30 @@ function UserManagement() {
         </section>
 
         {/* Filter and Search Bar */}
+        {(urlRole || urlStatus) && (
+          <div className="offline-notice" style={{ marginBottom: '1.25rem' }}>
+            <span className="material-symbols-outlined offline-icon">filter_alt</span>
+            <div>
+              <div className="offline-title">
+                Filtre actif : {urlRole && `Rôle : ${urlRole}`}
+                {urlStatus && `${urlRole ? ' · ' : ''}Statut : ${urlStatus}`}
+              </div>
+              <div className="offline-text">Filtre ciblé appliqué depuis le tableau de bord.</div>
+            </div>
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{ marginLeft: 'auto' }}
+              onClick={() => {
+                setSearchParams({});
+                setRoleFilter('Tous');
+                setStatusFilter('Tous');
+              }}
+            >
+              Afficher tout
+            </button>
+          </div>
+        )}
         <section className="filter-toolbar">
           <div className="search-wrapper">
             <span className="material-symbols-outlined search-icon">search</span>
