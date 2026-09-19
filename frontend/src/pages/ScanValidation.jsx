@@ -66,10 +66,10 @@ function ScanValidation() {
   const [historiqueSession, setHistoriqueSession] = useState(chargerHistoriqueStocke);
   const [soundEnabled, setSoundEnabled] = useState(true);
 
-  // La caméra est activée automatiquement par défaut en vue de front ('user')
+  // La caméra arrière ('environment') est la bonne par défaut pour scanner un QR code
   const [cameraOpen, setCameraOpen] = useState(true);
   const [cameraError, setCameraError] = useState(null);
-  const [facingMode, setFacingMode] = useState('user');
+  const [facingMode, setFacingMode] = useState('environment');
 
   // Tiroir historique
   const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
@@ -270,7 +270,7 @@ function ScanValidation() {
         try {
           await instance.start(
             configToTry,
-            { fps: 15, aspectRatio: 1.0 },
+            { fps: 10 },
             onScanSuccess,
             () => {}
           );
@@ -280,11 +280,11 @@ function ScanValidation() {
             return;
           }
           console.warn('Essai caméra frontale/arrière échoué, essai repli :', firstErr);
-          const fallbackFacing = facingMode === 'user' ? 'environment' : 'user';
+          const fallbackFacing = facingMode === 'environment' ? 'user' : 'environment';
           try {
             await instance.start(
               { facingMode: fallbackFacing },
-              { fps: 15, aspectRatio: 1.0 },
+              { fps: 10 },
               onScanSuccess,
               () => {}
             );
@@ -297,7 +297,7 @@ function ScanValidation() {
             if (deviceList.length > 0 && deviceList[0]?.id) {
               await instance.start(
                 deviceList[0].id,
-                { fps: 15, aspectRatio: 1.0 },
+                { fps: 10 },
                 onScanSuccess,
                 () => {}
               );
@@ -352,13 +352,13 @@ function ScanValidation() {
           {step === 'scanner' && (
             <button
               type="button"
-              className={`tool-pill-btn camera-flip-pill${facingMode === 'user' ? ' active' : ''}`}
+              className={`tool-pill-btn camera-flip-pill${facingMode === 'environment' ? ' active' : ''}`}
               onClick={handleFlipCamera}
-              title={facingMode === 'user' ? "Passer en caméra arrière" : "Passer en caméra frontale"}
+              title={facingMode === 'environment' ? "Passer en caméra frontale" : "Passer en caméra arrière"}
               aria-label="Inverser la caméra"
             >
               <span className="material-symbols-outlined">flip_camera_ios</span>
-              <span className="tool-pill-cam-label">{facingMode === 'user' ? 'Face' : 'Dos'}</span>
+              <span className="tool-pill-cam-label">{facingMode === 'environment' ? 'Dos' : 'Face'}</span>
             </button>
           )}
 
