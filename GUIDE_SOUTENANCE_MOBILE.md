@@ -99,12 +99,12 @@
 | `Ctrl + Shift + G` | Gestionnaire Git | Montre l'arbre propre et l'historique des commits du TP 2. |
 | `Ctrl + +` | Zoom d'affichage | Zoomez de 1 ou 2 crans pour que le jury lise nettement sur le partage d'écran. |
 
-### Déroulé chronométré en direct :
-1. **Démarrage :** `docker compose up -d` ➔ Montrez le démarrage instantané de `billetterie-mongo` et `billetterie-backend`.
-2. **Statut actif :** `docker compose ps` ➔ Prouvez que les deux conteneurs sont au statut **Up** avec les ports mappés.
-3. **Logs en direct :** `docker compose logs backend --tail=10` ➔ Montrez `Server running on port 8000` et `MongoDB Connected: mongo`.
-4. **Test API :** `curl -i -X POST http://localhost:8000/api/auth/login -H "Content-Type: application/json" -d '{}'` ➔ Montrez la réponse HTTP 400 en direct.
-5. **Démo Mobile :** Touche `F12` ➔ Basculez en vue smartphone pour montrer la responsivité totale de l'Espace Client (drawer coulissant, bottom bar, cartes tactiles).
+### Déroulé chronométré en direct devant le jury :
+1. **Connexion VPS :** `ssh vps-ecole` ➔ Connexion par clé SSH à `167.86.91.52` en 1 seconde.
+2. **Statut actif :** `cd /root/billetterie && docker compose -f docker-compose.prod.yml ps` ➔ Prouvez que les 3 conteneurs sont au statut **Up** (ports 8080 et 8000).
+3. **L'argument massue RAM :** `docker stats --no-stream` ➔ Montrez que l'ensemble ne prend que **122 Mo de RAM** au total !
+4. **Preuve API :** `curl -i -X POST http://localhost:8000/api/auth/login -H "Content-Type: application/json" -d '{"email":"admin@billetterie.com","password":"Admin1234"}'` ➔ Montrez la réponse `HTTP 200 OK` et le token JWT.
+5. **Démo Mobile :** Ouvrez le navigateur à `http://167.86.91.52:8080` (connectez-vous avec `Admin1234`), touche `F12` pour basculer en vue smartphone et montrer la responsivité totale de l'Espace Client (drawer coulissant, bottom bar, cartes tactiles).
 
 ---
 
