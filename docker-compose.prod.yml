@@ -3,12 +3,12 @@ services:
     image: mongo:7
     container_name: billetterie-mongo
     restart: unless-stopped
-    command: ["mongod", "--wiredTigerCacheSizeGB", "0.15"]
-    mem_limit: 256m
+    command: ["mongod", "--wiredTigerCacheSizeGB", "0.25"]
+    mem_limit: 384m
     deploy:
       resources:
         limits:
-          memory: 256M
+          memory: 384M
     volumes:
       - mongo_data:/data/db
     networks:
