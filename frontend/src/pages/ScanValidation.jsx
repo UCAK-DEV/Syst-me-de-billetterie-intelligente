@@ -5,7 +5,6 @@ import { motifLabel, motifColors } from '../utils/motifsRefus';
 import { formatDateFR } from '../utils/dates';
 
 const QR_READER_ID = 'qr-reader-camera';
-const QR_FILE_DUMMY_ID = 'qr-reader-file-dummy';
 const HISTORIQUE_STORAGE_KEY = 'scanHistoriqueSession';
 
 const chargerHistoriqueStocke = () => {
@@ -60,10 +59,8 @@ function ScanValidation() {
     ? (window.isSecureContext || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
     : true;
 
-  // Navigation en 2 étapes style Onboarding : 'scanner' ou 'result'
+  // Étapes simples : 'scanner' ou 'result'
   const [step, setStep] = useState('scanner');
-
-  const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [resultat, setResultat] = useState(null);
   const [historiqueSession, setHistoriqueSession] = useState(chargerHistoriqueStocke);
@@ -72,15 +69,13 @@ function ScanValidation() {
   // La caméra est activée automatiquement par défaut en vue de front ('user')
   const [cameraOpen, setCameraOpen] = useState(true);
   const [cameraError, setCameraError] = useState(null);
-  const [facingMode, setFacingMode] = useState('user'); // Vue de front par défaut !
+  const [facingMode, setFacingMode] = useState('user');
 
-  // Tiroirs déportés
-  const [manualModalOpen, setManualModalOpen] = useState(false);
+  // Tiroir historique
   const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
 
   const html5QrRef = useRef(null);
   const scanningRef = useRef(false);
-  const fileInputRef = useRef(null);
 
   // Persistance de l'historique de session
   useEffect(() => {
@@ -92,7 +87,7 @@ function ScanValidation() {
   }, [historiqueSession]);
 
   const handleScan = async (codeToScan) => {
-    const raw = (codeToScan || code).trim();
+    const raw = (codeToScan || '').trim();
     if (!raw) return;
 
     setLoading(true);
@@ -129,7 +124,6 @@ function ScanValidation() {
 
       // Bascule automatique vers l'Étape 2 (Résultat Plein Format)
       setStep('result');
-      setManualModalOpen(false);
     } catch (err) {
       const echec = {
         autorise: false,
@@ -152,52 +146,17 @@ function ScanValidation() {
       ]);
 
       setStep('result');
-      setManualModalOpen(false);
     } finally {
       setLoading(false);
-      setCode('');
     }
   };
 
   // Re-scanner un nouveau titre
   const handleNextScan = () => {
     setResultat(null);
-    setCode('');
     setStep('scanner');
     setCameraError(null);
     setCameraOpen(true);
-  };
-
-  // Photo directe
-  const handlePhotoCapture = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setLoading(true);
-    setCameraError(null);
-
-    try {
-      const dummy = document.getElementById(QR_FILE_DUMMY_ID);
-      if (!dummy) throw new Error('Élément de décodage non prêt');
-
-      const fileScanner = new Html5Qrcode(QR_FILE_DUMMY_ID);
-      try {
-        const decoded = await fileScanner.scanFile(file, false);
-        await fileScanner.clear();
-        await handleScan(decoded);
-      } catch (scanErr) {
-        await fileScanner.clear().catch(() => {});
-        throw scanErr;
-      }
-    } catch (err) {
-      console.warn('Échec décodage photo :', err);
-      setCameraError(
-        'Aucun QR Code valide détecté sur cette photo. Essayez avec un angle plus net ou saisissez le code manuellement.'
-      );
-    } finally {
-      setLoading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
   };
 
   // Inverser la caméra (Avant / Arrière)
@@ -368,41 +327,17 @@ function ScanValidation() {
 
   return (
     <main className="main-content scan-onboarding-container">
-      {/* Conteneur caché pour le décodage de clichés photos */}
-      <div id={QR_FILE_DUMMY_ID} style={{ display: 'none' }} />
+      {/* En-tête simple et épuré */}
+      <div className="scan-wizard-header" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1 className="scan-main-title" style={{ margin: 0, fontSize: '1.25rem' }}>Contrôle des Titres</h1>
 
-      {/* Input de fichier caché pour la capture photo native */}
-      <input
-        type="file"
-        ref={fileInputRef}
-        accept="image/*"
-        capture="environment"
-        style={{ display: 'none' }}
-        onChange={handlePhotoCapture}
-      />
-
-      {/* Barre d'étape style Onboarding */}
-      <div className="scan-wizard-header">
-        <div className="scan-steps-badge-row">
-          <span className={`scan-step-badge${step === 'scanner' ? ' active' : ' completed'}`}>
-            <span className="step-num">1</span>
-            <span className="step-text">Scanner</span>
-          </span>
-          <span className="material-symbols-outlined step-separator">chevron_right</span>
-          <span className={`scan-step-badge${step === 'result' ? ' active' : ''}`}>
-            <span className="step-num">2</span>
-            <span className="step-text">Résultat</span>
-          </span>
-        </div>
-
-        {/* Commandes discrètes d'en-tête */}
         <div className="scan-quick-tools">
           {step === 'scanner' && (
             <button
               type="button"
               className={`tool-pill-btn camera-flip-pill${facingMode === 'user' ? ' active' : ''}`}
               onClick={handleFlipCamera}
-              title={facingMode === 'user' ? "Caméra frontale active (cliquer pour caméra arrière)" : "Caméra arrière active (cliquer pour caméra frontale)"}
+              title={facingMode === 'user' ? "Passer en caméra arrière" : "Passer en caméra frontale"}
               aria-label="Inverser la caméra"
             >
               <span className="material-symbols-outlined">flip_camera_ios</span>
@@ -414,37 +349,20 @@ function ScanValidation() {
             type="button"
             className={`tool-pill-btn${soundEnabled ? ' active' : ''}`}
             onClick={() => setSoundEnabled(!soundEnabled)}
-            title={soundEnabled ? 'Désactiver les signaux sonores' : 'Activer les signaux sonores'}
+            title={soundEnabled ? 'Désactiver le son' : 'Activer le son'}
           >
             <span className="material-symbols-outlined">
               {soundEnabled ? 'volume_up' : 'volume_off'}
             </span>
           </button>
-
-          <button
-            type="button"
-            className="tool-pill-btn session-badge-btn"
-            onClick={() => setHistoryDrawerOpen(true)}
-            title="Consulter les statistiques de la session"
-          >
-            <span className="material-symbols-outlined">bar_chart</span>
-            <span className="session-count-text">{totalSession} scans</span>
-          </button>
         </div>
       </div>
 
       {/* =========================================================================
-          ÉTAPE 1 : LE SCANNER CAMÉRA PLEIN FORMAT (PRIORITAIRE & SANS DISTRACTION)
+          ÉTAPE 1 : LE SCANNER CAMÉRA ÉPURÉ ET SANS DISTRACTION
           ========================================================================= */}
       {step === 'scanner' && (
         <section className="scan-step-view scan-step-camera">
-          <div className="scan-prompt-header">
-            <h1 className="scan-main-title">Contrôle des Titres</h1>
-            <p className="scan-main-subtitle">
-              Pointez la caméra vers le QR Code
-            </p>
-          </div>
-
           {/* Bandeau d'alerte si connexion HTTP non sécurisée */}
           {!isSecure && (
             <div
@@ -463,28 +381,11 @@ function ScanValidation() {
               </span>
               <div>
                 <div className="offline-title" style={{ color: '#f59e0b', fontWeight: 'bold' }}>
-                  Connexion sécurisée requise pour la caméra
+                  Connexion sécurisée requise
                 </div>
                 <div className="offline-text" style={{ margin: '4px 0 10px', fontSize: '0.82rem', lineHeight: '1.4' }}>
-                  Votre navigateur bloque la caméra sur une adresse IP en HTTP. Ouvrez l'application via son lien HTTPS sécurisé officiel.
+                  Le navigateur requiert une connexion HTTPS pour accéder à la caméra.
                 </div>
-                <a
-                  href={`https://billetterie.167-86-91-52.sslip.io${window.location.pathname}`}
-                  className="btn-primary"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    fontSize: '0.8rem',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '12px',
-                    textDecoration: 'none',
-                    fontWeight: 700,
-                  }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>vpn_key</span>
-                  Basculer en HTTPS Sécurisé (Let's Encrypt)
-                </a>
               </div>
             </div>
           )}
@@ -495,7 +396,7 @@ function ScanValidation() {
               <div>
                 <div className="offline-title">Accès caméra restreint</div>
                 <div className="offline-text">{cameraError}</div>
-                <div style={{ marginTop: '0.65rem', display: 'flex', gap: '0.5rem' }}>
+                <div style={{ marginTop: '0.65rem' }}>
                   <button
                     type="button"
                     className="btn-primary"
@@ -506,14 +407,6 @@ function ScanValidation() {
                     }}
                   >
                     Réessayer la caméra
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    style={{ fontSize: '0.78rem', padding: '0.35rem 0.75rem' }}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    Prendre une photo
                   </button>
                 </div>
               </div>
@@ -542,38 +435,6 @@ function ScanValidation() {
               <span className="pulse-indicator"></span>
               <span>{loading ? 'Vérification...' : 'Visez le QR Code'}</span>
             </div>
-          </div>
-
-          {/* Options secondaires de secours */}
-          <div className="scan-secondary-options" style={{ flexDirection: 'column', gap: '0.6rem', alignItems: 'center' }}>
-            <button
-              type="button"
-              className="scan-manual-trigger-btn"
-              onClick={handleFlipCamera}
-              title="Inverser la caméra (Vue Avant / Vue Arrière)"
-            >
-              <span className="material-symbols-outlined">flip_camera_ios</span>
-              <span>Inverser la caméra ({facingMode === 'user' ? 'Vue Avant' : 'Vue Arrière'})</span>
-            </button>
-
-            <button
-              type="button"
-              className="scan-manual-trigger-btn"
-              onClick={() => fileInputRef.current?.click()}
-              title="Ouvre l'appareil photo du téléphone pour prendre un cliché du QR Code"
-            >
-              <span className="material-symbols-outlined">add_a_photo</span>
-              <span>Prendre en photo / Importer un QR Code</span>
-            </button>
-
-            <button
-              type="button"
-              className="scan-manual-trigger-btn"
-              onClick={() => setManualModalOpen(true)}
-            >
-              <span className="material-symbols-outlined">keyboard</span>
-              <span>Saisie manuelle au clavier</span>
-            </button>
           </div>
         </section>
       )}
@@ -656,76 +517,7 @@ function ScanValidation() {
         </section>
       )}
 
-      {/* =========================================================================
-          TIROIR DÉROULANT : SAISIE MANUELLE AU CLAVIER
-          ========================================================================= */}
-      {manualModalOpen && (
-        <div className="customizer-backdrop" onClick={() => setManualModalOpen(false)}>
-          <div className="customizer-panel" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '440px' }}>
-            <div className="customizer-header">
-              <div className="customizer-title-row">
-                <span className="material-symbols-outlined customizer-icon">keyboard</span>
-                <div>
-                  <h3 className="customizer-title">Saisie manuelle du code</h3>
-                  <p className="customizer-subtitle">En cas de QR Code détérioré ou de caméra indisponible</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                className="customizer-close-btn"
-                onClick={() => setManualModalOpen(false)}
-                aria-label="Fermer"
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleScan();
-              }}
-              style={{ padding: '1.5rem' }}
-            >
-              <div className="form-group" style={{ marginBottom: '1.25rem' }}>
-                <label className="form-label" htmlFor="manual-code-input">
-                  Code unique du titre
-                </label>
-                <input
-                  id="manual-code-input"
-                  type="text"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  placeholder="Ex: TKT-a94f83bc..."
-                  className="form-input"
-                  style={{ fontSize: '1rem', padding: '0.85rem' }}
-                  autoFocus
-                  required
-                />
-              </div>
-
-              <div style={{ display: 'flex', gap: '0.75rem' }}>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => setManualModalOpen(false)}
-                  style={{ flex: 1 }}
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  className="btn-primary"
-                  disabled={loading || !code.trim()}
-                  style={{ flex: 2 }}
-                >
-                  {loading ? 'Vérification...' : 'Valider le titre'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* =========================================================================
           TIROIR LATÉRAL : HISTORIQUE & STATISTIQUES DE SESSION
