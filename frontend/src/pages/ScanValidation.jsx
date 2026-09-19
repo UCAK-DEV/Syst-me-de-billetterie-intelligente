@@ -86,6 +86,14 @@ function ScanValidation() {
     }
   }, [historiqueSession]);
 
+  /**
+   * Traitement d'un QR Code décodé :
+   * - Envoi du code unique à l'API de validation du Service Billetterie
+   * - Émission d'un retour sonore (bip aigu si succès, grave si échec)
+   * - Déclenchement de la vibration haptique sur smartphone
+   * - Enregistrement dans l'historique de session locale
+   * - Affichage de l'écran de décision (Autorisé / Refusé)
+   */
   const handleScan = async (codeToScan) => {
     const raw = (codeToScan || '').trim();
     if (!raw) return;
@@ -93,23 +101,25 @@ function ScanValidation() {
     setLoading(true);
 
     try {
+      // 1. Appel du microservice Billetterie (POST /api/billetterie/validations/scan)
       const res = await scannerValidation(raw);
       setResultat(res);
 
+      // 2. Feedback sonore
       if (soundEnabled) {
         playAudioFeedback(res.autorise);
       }
 
-      // Retour haptique sur smartphone
+      // 3. Retour haptique (vibration) sur smartphone compatible
       if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
         try {
           navigator.vibrate(res.autorise ? [40, 60, 40] : [100, 50, 100]);
         } catch {
-          // Ignorer si non supporté
+          // Ignorer si non supporté par le matériel
         }
       }
 
-      // Ajout à la session locale
+      // 4. Mémorisation du contrôle dans la session courante
       setHistoriqueSession((prev) => [
         {
           id: res.validation?.id || `VAL-${Date.now()}`,
@@ -122,9 +132,10 @@ function ScanValidation() {
         ...prev.slice(0, 19),
       ]);
 
-      // Bascule automatique vers l'Étape 2 (Résultat Plein Format)
+      // 5. Affichage immédiat du grand écran de résultat
       setStep('result');
     } catch (err) {
+      // En cas d'erreur de communication ou indisponibilité du service
       const echec = {
         autorise: false,
         message: err.message || 'Erreur lors du scan',
@@ -151,7 +162,9 @@ function ScanValidation() {
     }
   };
 
-  // Re-scanner un nouveau titre
+  /**
+   * Réinitialise l'état pour contrôler le voyageur suivant
+   */
   const handleNextScan = () => {
     setResultat(null);
     setStep('scanner');
@@ -159,14 +172,18 @@ function ScanValidation() {
     setCameraOpen(true);
   };
 
-  // Inverser la caméra (Avant / Arrière)
+  /**
+   * Bascule entre la caméra frontale ('user') et arrière ('environment')
+   */
   const handleFlipCamera = () => {
     setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'));
     setCameraOpen(false);
     setTimeout(() => setCameraOpen(true), 120);
   };
 
-  // Arrêt sécurisé du scanner évitant l'erreur 'Cannot stop, scanner is not running'
+  /**
+   * Arrêt sécurisé du flux caméra évitant les blocages ou exceptions non interceptées
+   */
   const safeStopScanner = async (instance) => {
     if (!instance) return;
     try {

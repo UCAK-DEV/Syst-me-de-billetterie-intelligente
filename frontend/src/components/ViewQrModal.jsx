@@ -2,24 +2,33 @@ import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { formatDateFR } from '../utils/dates';
 
+/**
+ * Libellés d'affichage selon le type de titre
+ */
 const TYPE_LABELS = {
   TICKET_SIMPLE: 'Ticket Simple',
   LIMITE: 'Abonnement Limité',
   ILLIMITE: 'Abonnement Illimité',
 };
 
+/**
+ * Modale de visualisation du QR Code numérique d'un titre de transport
+ * Permet au voyageur de présenter son billet, de copier le code ou de télécharger le QR.
+ */
 function ViewQrModal({ titre, client, onClose }) {
   const [copied, setCopied] = useState(false);
   const [shared, setShared] = useState(false);
 
   if (!titre) return null;
 
+  // Copie le code textuel du titre dans le presse-papier
   const handleCopyCode = () => {
     navigator.clipboard.writeText(titre.codeUnique);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // Télécharge le QR Code : soit via l'image base64 existante, soit en sérialisant le SVG
   const handleDownloadImage = () => {
     if (titre.qrCodeData && (titre.qrCodeData.startsWith('data:image') || titre.qrCodeData.startsWith('http'))) {
       const link = document.createElement('a');
@@ -30,6 +39,8 @@ function ViewQrModal({ titre, client, onClose }) {
       document.body.removeChild(link);
       return;
     }
+
+    // Export dynamique au format SVG si l'image brute n'est pas fournie
     const svgEl = document.querySelector('.qr-neon-frame svg');
     if (svgEl) {
       const svgData = new XMLSerializer().serializeToString(svgEl);
@@ -45,6 +56,7 @@ function ViewQrModal({ titre, client, onClose }) {
     }
   };
 
+  // Partage le titre via la Web Share API native sur smartphone
   const handleShare = async () => {
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {

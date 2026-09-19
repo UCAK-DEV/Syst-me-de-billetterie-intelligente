@@ -33,12 +33,17 @@ function Login() {
     metaDesc.content = "Portail de connexion sécurisé pour le Système de Billetterie Intelligente. Gérer vos voyages, tickets et abonnements.";
   }, []);
 
+  /**
+   * Traitement du formulaire de connexion
+   * Valide les champs, appelle l'API d'authentification et redirige l'utilisateur
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess(false);
     setInfoMessage('');
 
+    // 1. Validation syntaxique de l'email et du mot de passe
     const validationError = validateLoginForm({ email, password });
     if (validationError) {
       setError(validationError);
@@ -48,11 +53,15 @@ function Login() {
     setIsLoading(true);
 
     try {
+      // 2. Appel du service d'authentification
       const res = await api.login(email, password);
+      
+      // 3. Enregistrement de la session (Token JWT et données utilisateur)
       setAuth(res.token, res.user);
       setSuccess(true);
+
+      // 4. Redirection : changement forcé si mot de passe temporaire, sinon tableau de bord
       setTimeout(() => {
-        // Mot de passe temporaire : on impose d'abord son remplacement
         navigate(res.user.mustChangePassword ? '/change-password' : '/');
       }, 1000);
     } catch (err) {

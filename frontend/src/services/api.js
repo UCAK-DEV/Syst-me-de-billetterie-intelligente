@@ -1,5 +1,12 @@
+/**
+ * Service API Utilisateurs & Authentification
+ * Gère les communications REST avec le backend (port 5050),
+ * le stockage sécurisé du jeton JWT et le mécanisme de secours local.
+ */
+
 import { MOCK_USERS } from './mockData';
 
+// Normalisation de l'URL de base de l'API
 let rawApiUrl = (import.meta.env.VITE_API_URL || '/api').trim();
 if (!rawApiUrl.startsWith('http') && !rawApiUrl.startsWith('/')) {
   rawApiUrl = `/${rawApiUrl}`;
@@ -9,7 +16,7 @@ if (!rawApiUrl.endsWith('/api')) {
 }
 const API_URL = rawApiUrl;
 
-// Origine du serveur (sans le /api), pour les fichiers servis en statique
+// Origine du serveur (sans le /api), pour les fichiers servis en statique (photos, uploads)
 const SERVER_ORIGIN = API_URL.replace(/\/api\/?$/, '');
 
 // Construit l'URL complète d'une photo de profil ('' si aucune photo)

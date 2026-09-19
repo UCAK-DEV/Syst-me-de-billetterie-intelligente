@@ -24,6 +24,13 @@ const STATUT_COLORS = {
   EXPIRE: { backgroundColor: '#fef3c7', color: '#92400e' },
 };
 
+/**
+ * Espace Voyageur / Client
+ * Permet au voyageur connecté de :
+ * - Consulter son statut de droit à voyager (validité de son abonnement)
+ * - Voir la liste de ses titres actifs et passés (TER, BRT, urbains)
+ * - Afficher et présenter son QR Code pour validation à la borne
+ */
 function EspaceClient() {
   const user = getStoredUser();
   const [titres, setTitres] = useState([]);
@@ -32,6 +39,7 @@ function EspaceClient() {
   const [error, setError] = useState(null);
   const [selectedTitre, setSelectedTitre] = useState(null);
 
+  // Chargement en parallèle des titres du client et de son statut d'abonnement
   useEffect(() => {
     if (!user?.id) return;
     Promise.all([getTitresClient(user.id), verifierValidite(user.id)])
