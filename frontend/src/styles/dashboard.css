@@ -5,6 +5,7 @@
   --font-sans: "Inter", "Google Sans", "Outfit", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
   --primary-color: #4f46e5;
+  --primary-hover: #4338ca;
   --primary-dark: #3730a3;
   --primary-light: #eff6ff;
   --text-dark: #0f172a;
@@ -14,6 +15,7 @@
   --body-bg: #f4f5f7;
   --input-bg: #eff3ff;
   --input-bg-focus: #ffffff;
+  --floating-nav-bg: rgba(255, 255, 255, 0.95);
 }
 
 /* Thème sombre — bascule manuelle (voir ThemeContext), variables
@@ -28,6 +30,7 @@
   --body-bg: #121420;
   --input-bg: rgba(255, 255, 255, 0.05);
   --input-bg-focus: rgba(255, 255, 255, 0.09);
+  --floating-nav-bg: rgba(18, 20, 32, 0.92);
 }
 
 body {

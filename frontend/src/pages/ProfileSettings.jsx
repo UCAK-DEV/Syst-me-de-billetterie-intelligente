@@ -4,7 +4,6 @@ import { api, setStoredUser, photoUrl } from '../services/api';
 import { validateNewPassword, validateUserForm } from '../utils/validators';
 import PasswordInput from '../components/PasswordInput';
 import { formatDateFR } from '../utils/dates';
-import { useTheme, COLOR_PRESETS, THEME_MODES, RADIUS_PRESETS } from '../context/ThemeContext';
 import './ProfileSettings.css';
 
 function ProfileSettings() {
@@ -13,15 +12,6 @@ function ProfileSettings() {
 
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const {
-    color,
-    theme,
-    borderRadius,
-    setColor,
-    setTheme,
-    setBorderRadius,
-    resetCustomization,
-  } = useTheme();
 
   // Formulaire informations personnelles
   const [nom, setNom] = useState('');
@@ -306,123 +296,6 @@ function ProfileSettings() {
                 </button>
               </div>
             </form>
-          </section>
-
-          {/* Section Personnalisation de l'Apparence */}
-          <section className="table-card">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
-              <div>
-                <h2 className="profile-section-title" style={{ margin: 0 }}>Personnalisation de l'affichage</h2>
-                <p className="customizer-subtitle">Choisissez votre couleur préférée, l'ambiance et le style des formes</p>
-              </div>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={resetCustomization}
-                style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}
-              >
-                Rétablir par défaut
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.4rem' }}>
-              <div>
-                <label className="customizer-label">Couleur d'accentuation</label>
-                <div className="accent-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.65rem', marginTop: '0.5rem' }}>
-                  {COLOR_PRESETS.map((preset) => {
-                    const isActive = preset.id === color;
-                    return (
-                      <button
-                        key={preset.id}
-                        type="button"
-                        className={`accent-card${isActive ? ' active' : ''}`}
-                        onClick={() => setColor(preset.id)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.65rem',
-                          padding: '0.65rem 0.85rem',
-                          borderRadius: '12px',
-                          backgroundColor: isActive ? 'var(--primary-light)' : 'rgba(255, 255, 255, 0.03)',
-                          borderColor: isActive ? preset.hex : 'var(--border-glass)',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        <span
-                          className="accent-circle"
-                          style={{
-                            width: '24px',
-                            height: '24px',
-                            minWidth: '24px',
-                            borderRadius: '50%',
-                            backgroundColor: preset.hex,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            boxShadow: isActive ? `0 0 10px ${preset.hex}` : 'none',
-                          }}
-                        >
-                          {isActive && (
-                            <span className="material-symbols-outlined" style={{ fontSize: '15px', color: '#ffffff', fontWeight: 900 }}>
-                              check
-                            </span>
-                          )}
-                        </span>
-                        <span style={{ fontWeight: 650, fontSize: '0.85rem', color: 'var(--text-dark)' }}>
-                          {preset.name}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div>
-                <label className="customizer-label">Ambiance générale</label>
-                <div className="mode-selector-row" style={{ marginTop: '0.5rem' }}>
-                  {THEME_MODES.map((m) => {
-                    const isActive = m.id === theme;
-                    return (
-                      <button
-                        key={m.id}
-                        type="button"
-                        className={`mode-pill${isActive ? ' active' : ''}`}
-                        onClick={() => setTheme(m.id)}
-                      >
-                        <span className="material-symbols-outlined mode-icon">{m.icon}</span>
-                        <span className="mode-label">{m.name}</span>
-                        <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>
-                          {m.desc}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div>
-                <label className="customizer-label">Style des formes</label>
-                <div className="radius-selector-row" style={{ marginTop: '0.5rem' }}>
-                  {RADIUS_PRESETS.map((rad) => {
-                    const isActive = rad.id === borderRadius;
-                    return (
-                      <button
-                        key={rad.id}
-                        type="button"
-                        className={`radius-pill${isActive ? ' active' : ''}`}
-                        onClick={() => setBorderRadius(rad.id)}
-                      >
-                        <span className="material-symbols-outlined">rounded_corner</span>
-                        <div>
-                          <div className="radius-name">{rad.name}</div>
-                          <div className="radius-desc">{rad.desc}</div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
           </section>
         </div>
       </div>

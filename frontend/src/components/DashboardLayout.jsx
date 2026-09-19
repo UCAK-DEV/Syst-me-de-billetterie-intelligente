@@ -2,7 +2,6 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { getStoredUser, clearAuth, api, photoUrl } from '../services/api';
 import CommandPalette from './CommandPalette';
-import ThemeCustomizerModal from './ThemeCustomizerModal';
 import { useTheme } from '../context/ThemeContext.jsx';
 import '../styles/dashboard.css';
 
@@ -35,7 +34,7 @@ function DashboardLayout() {
   const location = useLocation();
   const currentPath = location.pathname;
   const navigate = useNavigate();
-  const { theme, toggleTheme, openCustomizer } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const [user, setUser] = useState(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(getStoredCollapsed);
@@ -162,16 +161,6 @@ function DashboardLayout() {
             aria-label="Rechercher"
           >
             <span className="material-symbols-outlined">search</span>
-          </button>
-
-          <button
-            type="button"
-            className="mobile-action-btn mobile-palette-btn"
-            onClick={openCustomizer}
-            title="Personnaliser les couleurs"
-            aria-label="Personnaliser les couleurs"
-          >
-            <span className="material-symbols-outlined">palette</span>
           </button>
 
           <button
@@ -323,15 +312,6 @@ function DashboardLayout() {
               <span className="material-symbols-outlined nav-user-chevron">chevron_right</span>
             </Link>
 
-            <button
-              onClick={openCustomizer}
-              className="sidebar-theme-btn"
-              title="Personnaliser les couleurs"
-              aria-label="Personnaliser les couleurs"
-            >
-              <span className="material-symbols-outlined">palette</span>
-              <span className="sidebar-link-text">Personnaliser</span>
-            </button>
 
             <button
               onClick={toggleTheme}
@@ -468,7 +448,6 @@ function DashboardLayout() {
       </nav>
 
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} entries={paletteEntries} />
-      <ThemeCustomizerModal />
     </div>
   );
 }
