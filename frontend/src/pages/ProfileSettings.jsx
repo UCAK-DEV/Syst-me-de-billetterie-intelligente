@@ -4,7 +4,7 @@ import { api, setStoredUser, photoUrl } from '../services/api';
 import { validateNewPassword, validateUserForm } from '../utils/validators';
 import PasswordInput from '../components/PasswordInput';
 import { formatDateFR } from '../utils/dates';
-import { useTheme, ACCENT_PRESETS, THEME_MODES, RADIUS_PRESETS } from '../context/ThemeContext';
+import { useTheme, TRANSIT_OPERATORS, DISPLAY_MODES, UI_DENSITIES } from '../context/ThemeContext';
 import './ProfileSettings.css';
 
 function ProfileSettings() {
@@ -13,7 +13,15 @@ function ProfileSettings() {
 
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { theme, accentColor, borderRadius, setTheme, setAccentColor, setBorderRadius, resetCustomization } = useTheme();
+  const {
+    operator,
+    displayMode,
+    density,
+    setOperator,
+    setDisplayMode,
+    setDensity,
+    resetCustomization,
+  } = useTheme();
 
   // Formulaire informations personnelles
   const [nom, setNom] = useState('');
@@ -300,12 +308,12 @@ function ProfileSettings() {
             </form>
           </section>
 
-          {/* Section Personnalisation & Apparence (Suggestion du Professeur) */}
+          {/* Section Charte Réseau & Ergonomie Opérationnelle */}
           <section className="table-card">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
               <div>
-                <h2 className="profile-section-title" style={{ margin: 0 }}>Personnalisation & Apparence</h2>
-                <p className="customizer-subtitle">Choisissez vos couleurs d'accentuation et votre ambiance</p>
+                <h2 className="profile-section-title" style={{ margin: 0 }}>Charte Réseau & Ergonomie</h2>
+                <p className="customizer-subtitle">Identité de l'opérateur de transport et conformité accessibilité WCAG 2.1</p>
               </div>
               <button
                 type="button"
@@ -313,33 +321,68 @@ function ProfileSettings() {
                 onClick={resetCustomization}
                 style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}
               >
-                Par défaut
+                Réseau par défaut (BRT)
               </button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.4rem' }}>
               <div>
-                <label className="customizer-label">Couleur d'accentuation principale</label>
-                <div className="accent-grid" style={{ marginTop: '0.5rem' }}>
-                  {ACCENT_PRESETS.map((preset) => {
-                    const isActive = preset.id === accentColor;
+                <label className="customizer-label">1. Réseau de Transport (Opérateur)</label>
+                <div className="operator-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.65rem', marginTop: '0.5rem' }}>
+                  {TRANSIT_OPERATORS.map((op) => {
+                    const isActive = op.id === operator;
                     return (
                       <button
-                        key={preset.id}
+                        key={op.id}
                         type="button"
                         className={`accent-card${isActive ? ' active' : ''}`}
-                        onClick={() => setAccentColor(preset.id)}
+                        onClick={() => setOperator(op.id)}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'flex-start',
+                          padding: '0.75rem 0.85rem',
+                          borderRadius: '12px',
+                          gap: '0.25rem',
+                          textAlign: 'left',
+                          borderColor: isActive ? op.hex : 'var(--border-glass)',
+                          backgroundColor: isActive ? 'var(--primary-light)' : 'rgba(255, 255, 255, 0.03)',
+                        }}
                       >
-                        <span
-                          className="accent-circle"
-                          style={{
-                            backgroundColor: preset.hex,
-                            boxShadow: isActive ? `0 0 12px ${preset.hex}` : 'none',
-                          }}
-                        >
-                          {isActive && <span className="material-symbols-outlined check-icon">check</span>}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '24px',
+                                height: '24px',
+                                borderRadius: '6px',
+                                backgroundColor: op.hex,
+                                color: '#ffffff',
+                                fontWeight: 800,
+                                fontSize: '0.65rem',
+                              }}
+                            >
+                              {op.shortCode}
+                            </span>
+                            <span style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--text-dark)' }}>
+                              {op.name}
+                            </span>
+                          </div>
+                          {isActive && (
+                            <span
+                              className="material-symbols-outlined"
+                              style={{ color: op.hex, fontSize: '18px' }}
+                            >
+                              check_circle
+                            </span>
+                          )}
+                        </div>
+                        <span style={{ fontSize: '0.66rem', color: op.hex, fontWeight: 600 }}>
+                          {op.badge}
                         </span>
-                        <span className="accent-name">{preset.name}</span>
                       </button>
                     );
                   })}
@@ -347,19 +390,22 @@ function ProfileSettings() {
               </div>
 
               <div>
-                <label className="customizer-label">Ambiance générale</label>
+                <label className="customizer-label">2. Environnement Lumineux & Ergonomie (WCAG 2.1 AAA)</label>
                 <div className="mode-selector-row" style={{ marginTop: '0.5rem' }}>
-                  {THEME_MODES.map((mode) => {
-                    const isActive = mode.id === theme;
+                  {DISPLAY_MODES.map((mode) => {
+                    const isActive = mode.id === displayMode;
                     return (
                       <button
                         key={mode.id}
                         type="button"
                         className={`mode-pill${isActive ? ' active' : ''}`}
-                        onClick={() => setTheme(mode.id)}
+                        onClick={() => setDisplayMode(mode.id)}
                       >
                         <span className="material-symbols-outlined mode-icon">{mode.icon}</span>
                         <span className="mode-label">{mode.name}</span>
+                        <span style={{ fontSize: '0.62rem', color: isActive ? 'var(--primary-color)' : 'var(--text-muted)' }}>
+                          {mode.standard}
+                        </span>
                       </button>
                     );
                   })}
@@ -367,21 +413,21 @@ function ProfileSettings() {
               </div>
 
               <div>
-                <label className="customizer-label">Style des formes</label>
+                <label className="customizer-label">3. Densité d'Interface Métier (Loi de Fitts)</label>
                 <div className="radius-selector-row" style={{ marginTop: '0.5rem' }}>
-                  {RADIUS_PRESETS.map((rad) => {
-                    const isActive = rad.id === borderRadius;
+                  {UI_DENSITIES.map((d) => {
+                    const isActive = d.id === density;
                     return (
                       <button
-                        key={rad.id}
+                        key={d.id}
                         type="button"
                         className={`radius-pill${isActive ? ' active' : ''}`}
-                        onClick={() => setBorderRadius(rad.id)}
+                        onClick={() => setDensity(d.id)}
                       >
-                        <span className="material-symbols-outlined">rounded_corner</span>
+                        <span className="material-symbols-outlined">{d.icon}</span>
                         <div>
-                          <div className="radius-name">{rad.name}</div>
-                          <div className="radius-desc">{rad.desc}</div>
+                          <div className="radius-name">{d.name}</div>
+                          <div className="radius-desc">{d.desc}</div>
                         </div>
                       </button>
                     );

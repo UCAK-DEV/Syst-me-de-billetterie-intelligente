@@ -198,25 +198,57 @@ function ScanValidation() {
     setTimeout(() => setCameraOpen(true), 200);
   };
 
+  // Arrêt sécurisé du scanner évitant l'erreur 'Cannot stop, scanner is not running'
+  const safeStopScanner = async (instance) => {
+    if (!instance) return;
+    try {
+      if (instance.isScanning) {
+        await instance.stop();
+      }
+    } catch {
+      // Ignorer l'exception synchrone ou asynchrone si le scanner n'est pas actif
+    }
+    try {
+      await instance.clear();
+    } catch {
+      // Ignorer
+    }
+  };
+
   // Démarrage intelligent de la caméra (caméra arrière en priorité, puis webcam, avec repli automatique)
   useEffect(() => {
+    let cancelled = false;
+
     if (step !== 'scanner' || !cameraOpen) {
       if (html5QrRef.current) {
-        html5QrRef.current
-          .stop()
-          .then(() => html5QrRef.current?.clear())
-          .catch(() => {});
+        const instance = html5QrRef.current;
         html5QrRef.current = null;
+        safeStopScanner(instance);
       }
       return undefined;
     }
 
     setCameraError(null);
-    let cancelled = false;
+
+    // Détection immédiate du contexte sécurisé (HTTPS / localhost requis pour getUserMedia)
+    if (!isSecure) {
+      setCameraError(
+        "Les navigateurs bloquent la caméra en direct sur une adresse HTTP non chiffrée. Utilisez le lien HTTPS sécurisé officiel ci-dessus ou prenez un cliché photo ci-dessous."
+      );
+      setCameraOpen(false);
+      return undefined;
+    }
 
     const timer = setTimeout(async () => {
       const el = document.getElementById(QR_READER_ID);
       if (!el || cancelled) return;
+
+      if (html5QrRef.current) {
+        const prev = html5QrRef.current;
+        html5QrRef.current = null;
+        await safeStopScanner(prev);
+      }
+      if (cancelled) return;
 
       const instance = new Html5Qrcode(QR_READER_ID);
       html5QrRef.current = instance;
@@ -233,20 +265,24 @@ function ScanValidation() {
         // 1. Découverte matérielle des caméras
         let deviceList = [];
         try {
-          deviceList = await Html5Qrcode.getCameras();
-          if (!cancelled && Array.isArray(deviceList)) {
-            setAvailableCameras(deviceList);
+          if (navigator.mediaDevices && typeof navigator.mediaDevices.enumerateDevices === 'function') {
+            deviceList = await Html5Qrcode.getCameras();
+            if (!cancelled && Array.isArray(deviceList)) {
+              setAvailableCameras(deviceList);
+            }
           }
         } catch {
           // Ignorer si l'énumération n'est pas permise
         }
 
-        if (cancelled) return;
+        if (cancelled) {
+          await safeStopScanner(instance);
+          return;
+        }
 
         // 2. Choix de la configuration (Caméra spécifique ou facingMode)
         let configToTry = null;
         if (deviceList.length > 0) {
-          // Si l'utilisateur a choisi un index valide
           const selected = deviceList[currentCameraIdx] || deviceList[0];
           configToTry = selected.id;
         } else {
@@ -262,8 +298,11 @@ function ScanValidation() {
             () => {}
           );
         } catch (firstErr) {
-          console.warn('Essai avec configuration principale échoué, essai du repli webcam frontale :', firstErr);
-          // Deuxième chance avec caméra par défaut (webcam PC)
+          if (cancelled) {
+            await safeStopScanner(instance);
+            return;
+          }
+          console.warn('Essai caméra principale échoué, essai repli webcam/frontale :', firstErr);
           await instance.start(
             { facingMode: 'user' },
             { fps: 12, qrbox: { width: 250, height: 250 } },
@@ -273,37 +312,35 @@ function ScanValidation() {
         }
       } catch (err) {
         if (cancelled) return;
-        console.error('Erreur caméra finale :', err);
+        console.warn('Caméra non disponible :', err?.message || err);
+        await safeStopScanner(instance);
+        html5QrRef.current = null;
 
-        let msg = "Impossible d'activer la caméra en direct.";
-        if (!isSecure) {
-          msg = "Les navigateurs bloquent la caméra en HTTP non chiffré. Veuillez utiliser le lien sécurisé HTTPS ci-dessous.";
-        } else if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-          msg = "Permission refusée. Veuillez autoriser l'accès à la caméra dans les paramètres de votre navigateur.";
-        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-          msg = "Aucun périphérique de caméra détecté. Vous pouvez prendre une photo ou utiliser la saisie manuelle.";
+        let msg = "Impossible d'activer la caméra en continu.";
+        if (err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError') {
+          msg = "Permission refusée. Veuillez autoriser l'accès à la caméra dans votre navigateur.";
+        } else if (err?.name === 'NotFoundError' || err?.name === 'DevicesNotFoundError') {
+          msg = "Aucune caméra détectée. Prenez un cliché photo ou utilisez la saisie manuelle.";
         } else {
-          msg = "Caméra inaccessible ou déjà utilisée par une autre application. Vous pouvez prendre une photo ou saisir le code.";
+          msg = "Caméra occupée ou non reconnue. Prenez une photo directe ou saisissez le code.";
         }
 
         setCameraError(msg);
         setCameraOpen(false);
       }
-    }, 200);
+    }, 250);
 
     return () => {
       cancelled = true;
       clearTimeout(timer);
       if (html5QrRef.current) {
-        html5QrRef.current
-          .stop()
-          .then(() => html5QrRef.current?.clear())
-          .catch(() => {});
+        const instance = html5QrRef.current;
         html5QrRef.current = null;
+        safeStopScanner(instance);
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, cameraOpen, currentCameraIdx]);
+  }, [step, cameraOpen, currentCameraIdx, isSecure]);
 
   const totalSession = historiqueSession.length;
   const autorisesSession = historiqueSession.filter((h) => h.autorise).length;
