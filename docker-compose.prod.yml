@@ -15,7 +15,7 @@ services:
       - billetterie-net
 
   mariadb:
-    image: mariadb:10.11-alpine
+    image: mariadb:10.11
     container_name: billetterie-mariadb
     restart: unless-stopped
     mem_limit: 128m
