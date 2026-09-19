@@ -85,11 +85,10 @@ function ViewQrModal({ titre, client, onClose }) {
           </button>
         </div>
 
-        {/* Corps de présentation fidèle à l'écran droit de la maquette */}
+        {/* Corps de présentation épuré */}
         <div className="qr-showcase-container" style={{ border: 'none', boxShadow: 'none', background: 'transparent' }}>
-          {/* Cadre QR Code néon avec faisceau de balayage */}
+          {/* Cadre QR Code épuré */}
           <div className="qr-neon-frame">
-            <div className="qr-laser-glow-line"></div>
             {titre.qrCodeData && (titre.qrCodeData.startsWith('data:image') || titre.qrCodeData.startsWith('http')) ? (
               <img
                 src={titre.qrCodeData}

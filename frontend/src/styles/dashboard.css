@@ -4693,32 +4693,15 @@ body {
 .qr-neon-frame {
   position: relative;
   padding: 1rem;
-  border-radius: 20px;
+  border-radius: 16px;
   background-color: #ffffff;
-  box-shadow: 0 0 24px var(--primary-glow);
+  border: 1px solid var(--border-glass, #e2e8f0);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
 }
 
-.qr-laser-glow-line {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
-  box-shadow: 0 0 12px var(--primary-color);
-  animation: qrLaserScan 3s linear infinite;
-}
-
-@keyframes qrLaserScan {
-  0% { top: 0%; opacity: 0; }
-  15% { opacity: 1; }
-  85% { opacity: 1; }
-  100% { top: 100%; opacity: 0; }
-}
 
 .qr-meta-table {
   width: 100%;
