@@ -150,3 +150,25 @@
   border: 1px solid #fde68a;
   color: #92400e;
 }
+
+@media (max-width: 480px) {
+  .profile-form-footer {
+    flex-direction: column-reverse;
+  }
+
+  .profile-form-footer button {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .profile-meta > div {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .profile-meta dd {
+    text-align: left;
+  }
+}

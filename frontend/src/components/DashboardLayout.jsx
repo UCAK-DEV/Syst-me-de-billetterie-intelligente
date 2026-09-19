@@ -38,6 +38,7 @@ function DashboardLayout() {
   const [user, setUser] = useState(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(getStoredCollapsed);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const toggleCollapsed = () => {
     setCollapsed((prev) => {
@@ -46,6 +47,11 @@ function DashboardLayout() {
       return next;
     });
   };
+
+  // Fermer le menu mobile lors d'un changement de route
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [currentPath]);
 
   useEffect(() => {
     const storedUser = getStoredUser();
@@ -74,18 +80,19 @@ function DashboardLayout() {
     }
   }, [navigate, currentPath]);
 
-  // Palette de commandes : Ctrl+K / Cmd+K depuis n'importe où dans le
-  // tableau de bord, comme un vrai produit — pas juste un menu de plus.
+  // Palette de commandes : Ctrl+K / Cmd+K et Échap pour fermer le menu mobile
   useEffect(() => {
     const onKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setPaletteOpen((v) => !v);
+      } else if (e.key === 'Escape' && mobileNavOpen) {
+        setMobileNavOpen(false);
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
+  }, [mobileNavOpen]);
 
   const isAdmin = user?.role === 'Administrateur';
   const isAgent = user?.role === 'Agent';
@@ -115,7 +122,12 @@ function DashboardLayout() {
   };
 
   const NavLink = ({ to, icon, label, active }) => (
-    <Link to={to} title={label} className={`sidebar-link${active ? ' active' : ''}`}>
+    <Link
+      to={to}
+      title={label}
+      className={`sidebar-link${active ? ' active' : ''}`}
+      onClick={() => setMobileNavOpen(false)}
+    >
       <span className="material-symbols-outlined sidebar-link-icon">{icon}</span>
       <span className="sidebar-link-text">{label}</span>
     </Link>
@@ -123,10 +135,78 @@ function DashboardLayout() {
 
   return (
     <div className="app-shell">
-      <aside className={`sidebar${collapsed ? ' collapsed' : ''}`}>
+      {/* Barre supérieure mobile (affichée uniquement sous <= 768px) */}
+      <header className="mobile-topbar" aria-label="Navigation mobile">
+        <button
+          type="button"
+          className="mobile-menu-btn"
+          onClick={() => setMobileNavOpen(true)}
+          aria-label="Ouvrir le menu de navigation"
+          title="Ouvrir le menu"
+        >
+          <span className="material-symbols-outlined">menu</span>
+        </button>
+
+        <div className="mobile-brand">
+          <span className="material-symbols-outlined nav-brand-icon">local_activity</span>
+          <span className="mobile-brand-title">Billetterie</span>
+        </div>
+
+        <div className="mobile-actions">
+          <button
+            type="button"
+            className="mobile-action-btn"
+            onClick={() => setPaletteOpen(true)}
+            title="Rechercher (Ctrl+K)"
+            aria-label="Rechercher"
+          >
+            <span className="material-symbols-outlined">search</span>
+          </button>
+
+          <button
+            type="button"
+            className="mobile-action-btn"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'}
+            aria-label={theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'}
+          >
+            <span className="material-symbols-outlined">
+              {theme === 'dark' ? 'light_mode' : 'dark_mode'}
+            </span>
+          </button>
+
+          {user && (
+            <Link to="/profile" className="mobile-user-avatar" title="Mon profil">
+              {user.photo ? (
+                <img
+                  src={photoUrl(user.photo)}
+                  alt=""
+                  style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+                />
+              ) : (
+                user.prenom ? user.prenom[0].toUpperCase() : 'U'
+              )}
+            </Link>
+          )}
+        </div>
+      </header>
+
+      {/* Backdrop semi-transparent pour fermer le tiroir sur mobile */}
+      {mobileNavOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setMobileNavOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Menu latéral (Sidebar desktop ou Drawer coulissant sur mobile) */}
+      <aside className={`sidebar${collapsed ? ' collapsed' : ''}${mobileNavOpen ? ' mobile-open' : ''}`}>
         <div className="sidebar-brand">
           <span className="material-symbols-outlined nav-brand-icon">local_activity</span>
           <span className="nav-brand-text">Billetterie Intelligente</span>
+
+          {/* Bouton de repli pour desktop */}
           <button
             type="button"
             className="sidebar-collapse-btn"
@@ -138,9 +218,28 @@ function DashboardLayout() {
               {collapsed ? 'chevron_right' : 'chevron_left'}
             </span>
           </button>
+
+          {/* Bouton de fermeture mobile */}
+          <button
+            type="button"
+            className="sidebar-close-mobile-btn"
+            onClick={() => setMobileNavOpen(false)}
+            aria-label="Fermer le menu"
+            title="Fermer le menu"
+          >
+            <span className="material-symbols-outlined">close</span>
+          </button>
         </div>
 
-        <button type="button" className="sidebar-search-hint" onClick={() => setPaletteOpen(true)} title="Rechercher (Ctrl+K)">
+        <button
+          type="button"
+          className="sidebar-search-hint"
+          onClick={() => {
+            setMobileNavOpen(false);
+            setPaletteOpen(true);
+          }}
+          title="Rechercher (Ctrl+K)"
+        >
           <span className="material-symbols-outlined">search</span>
           <span className="sidebar-link-text">Rechercher</span>
           <kbd>Ctrl K</kbd>
@@ -192,7 +291,12 @@ function DashboardLayout() {
 
         {user && (
           <div className="sidebar-footer">
-            <Link to="/profile" className="nav-user-identity" title="Mon profil">
+            <Link
+              to="/profile"
+              className="nav-user-identity"
+              title="Mon profil"
+              onClick={() => setMobileNavOpen(false)}
+            >
               <div className="nav-user-avatar">
                 {user.photo ? (
                   <img
@@ -235,9 +339,88 @@ function DashboardLayout() {
         )}
       </aside>
 
+      {/* Contenu principal */}
       <main className="app-content">
         {!blockedForRole && <Outlet />}
       </main>
+
+      {/* Barre de navigation basse pour mobile (Bottom Navigation Bar) */}
+      <nav className="mobile-bottom-nav" aria-label="Navigation rapide mobile">
+        {isClient && (
+          <>
+            <Link to="/mes-titres" className={`bottom-nav-item${currentPath === '/mes-titres' ? ' active' : ''}`}>
+              <span className="material-symbols-outlined">confirmation_number</span>
+              <span>Mes titres</span>
+            </Link>
+            <Link to="/profile" className={`bottom-nav-item${currentPath === '/profile' ? ' active' : ''}`}>
+              <span className="material-symbols-outlined">account_circle</span>
+              <span>Profil</span>
+            </Link>
+            <button
+              type="button"
+              className="bottom-nav-item bottom-nav-btn"
+              onClick={() => setMobileNavOpen(true)}
+            >
+              <span className="material-symbols-outlined">menu</span>
+              <span>Menu</span>
+            </button>
+          </>
+        )}
+
+        {isAgent && (
+          <>
+            <Link to="/scan" className={`bottom-nav-item${currentPath === '/scan' ? ' active' : ''}`}>
+              <span className="material-symbols-outlined">qr_code_scanner</span>
+              <span>Scan</span>
+            </Link>
+            <Link to="/titres" className={`bottom-nav-item${currentPath === '/titres' ? ' active' : ''}`}>
+              <span className="material-symbols-outlined">confirmation_number</span>
+              <span>Titres</span>
+            </Link>
+            <Link to="/validations" className={`bottom-nav-item${currentPath === '/validations' ? ' active' : ''}`}>
+              <span className="material-symbols-outlined">history</span>
+              <span>Historique</span>
+            </Link>
+            <button
+              type="button"
+              className="bottom-nav-item bottom-nav-btn"
+              onClick={() => setMobileNavOpen(true)}
+            >
+              <span className="material-symbols-outlined">menu</span>
+              <span>Menu</span>
+            </button>
+          </>
+        )}
+
+        {isAdmin && (
+          <>
+            <Link to="/stats" className={`bottom-nav-item${currentPath === '/stats' ? ' active' : ''}`}>
+              <span className="material-symbols-outlined">bar_chart</span>
+              <span>Bord</span>
+            </Link>
+            <Link to="/scan" className={`bottom-nav-item${currentPath === '/scan' ? ' active' : ''}`}>
+              <span className="material-symbols-outlined">qr_code_scanner</span>
+              <span>Scan</span>
+            </Link>
+            <Link to="/titres" className={`bottom-nav-item${currentPath === '/titres' ? ' active' : ''}`}>
+              <span className="material-symbols-outlined">confirmation_number</span>
+              <span>Titres</span>
+            </Link>
+            <Link to="/users" className={`bottom-nav-item${currentPath === '/users' ? ' active' : ''}`}>
+              <span className="material-symbols-outlined">group</span>
+              <span>Comptes</span>
+            </Link>
+            <button
+              type="button"
+              className="bottom-nav-item bottom-nav-btn"
+              onClick={() => setMobileNavOpen(true)}
+            >
+              <span className="material-symbols-outlined">menu</span>
+              <span>Plus</span>
+            </button>
+          </>
+        )}
+      </nav>
 
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} entries={paletteEntries} />
     </div>

@@ -1,0 +1,24 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: billetterie-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  backend:
+    build: ./backend
+    container_name: billetterie-backend
+    ports:
+      - "8000:8000"
+    environment:
+      PORT: 8000
+      MONGO_URI: mongodb://mongo:27017/billetterie
+      JWT_SECRET: secret_dev
+      NODE_ENV: development
+    depends_on:
+      - mongo
+
+volumes:
+  mongo_data:

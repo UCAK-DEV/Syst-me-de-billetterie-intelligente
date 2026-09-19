@@ -1,0 +1,67 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: billetterie-mongo
+    restart: unless-stopped
+    command: ["mongod", "--wiredTigerCacheSizeGB", "0.15"]
+    mem_limit: 256m
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - billetterie-net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: billetterie-backend
+    restart: unless-stopped
+    mem_limit: 128m
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    ports:
+      - "8000:8000"
+    environment:
+      PORT: 8000
+      MONGO_URI: mongodb://mongo:27017/billetterie
+      JWT_SECRET: ${JWT_SECRET:-vps_secret_production_key_2026}
+      NODE_ENV: production
+      EMAIL_USER: ${EMAIL_USER:-}
+      EMAIL_PASS: ${EMAIL_PASS:-}
+    depends_on:
+      - mongo
+    networks:
+      - billetterie-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    container_name: billetterie-frontend
+    restart: unless-stopped
+    mem_limit: 32m
+    deploy:
+      resources:
+        limits:
+          memory: 32M
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+    depends_on:
+      - backend
+    networks:
+      - billetterie-net
+
+volumes:
+  mongo_data:
+
+networks:
+  billetterie-net:
+    driver: bridge

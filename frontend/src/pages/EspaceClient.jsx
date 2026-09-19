@@ -100,57 +100,113 @@ function EspaceClient() {
         </div>
       </section>
 
-      <section className="table-card">
-        <h3 className="stats-card-title">Mes titres</h3>
+      <section className="table-card client-titres-section">
+        <div className="stats-card-header" style={{ justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <h3 className="stats-card-title">Mes titres de transport</h3>
+          <span className="metric-detail" style={{ fontWeight: 600 }}>
+            {titres.length} {titres.length > 1 ? 'titres' : 'titre'}
+          </span>
+        </div>
+
         {titres.length === 0 ? (
           <p className="bts-empty-hint">Vous n'avez aucun titre de transport pour le moment.</p>
         ) : (
-          <div className="table-responsive">
-            <table className="user-table">
-              <thead>
-                <tr className="table-header-row">
-                  <th className="table-header-th">Type</th>
-                  <th className="table-header-th">Statut</th>
-                  <th className="table-header-th">Expiration</th>
-                  <th className="table-header-th-action">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {titres.map((t) => (
-                  <tr key={t.id} className="table-row">
-                    <td className="table-td">
-                      <span className="role-badge" style={TYPE_COLORS[t.typeTitre]}>
-                        {TYPE_LABELS[t.typeTitre] || t.typeTitre}
+          <>
+            {/* Vue Cartes Mobile (visible sur smartphones <= 640px) */}
+            <div className="client-mobile-cards">
+              {titres.map((t) => (
+                <div key={t.id} className="client-titre-card">
+                  <div className="client-titre-header">
+                    <span className="role-badge" style={TYPE_COLORS[t.typeTitre]}>
+                      {TYPE_LABELS[t.typeTitre] || t.typeTitre}
+                    </span>
+                    <span className="role-badge" style={STATUT_COLORS[t.statut]}>
+                      {t.statut}
+                    </span>
+                  </div>
+
+                  <div className="client-titre-body">
+                    <div className="client-titre-id">
+                      <span className="material-symbols-outlined" style={{ fontSize: 18, verticalAlign: 'middle', marginRight: 4 }}>
+                        tag
                       </span>
-                    </td>
-                    <td className="table-td">
-                      <span className="role-badge" style={STATUT_COLORS[t.statut]}>{t.statut}</span>
-                    </td>
-                    <td className="table-td">
+                      <code>{t.codeUnique}</code>
+                    </div>
+
+                    <div className="client-titre-expiry">
+                      <span className="material-symbols-outlined" style={{ fontSize: 18, verticalAlign: 'middle', marginRight: 4 }}>
+                        event
+                      </span>
                       {t.dateExpiration ? (
-                        <>
-                          <div>{formatDateFR(t.dateExpiration)}</div>
-                          <div className="titre-meta">{tempsRestant(t.dateExpiration)}</div>
-                        </>
+                        <span>
+                          Expire le {formatDateFR(t.dateExpiration)} ({tempsRestant(t.dateExpiration)})
+                        </span>
                       ) : (
-                        'Illimitée'
+                        <span>Validité illimitée</span>
                       )}
-                    </td>
-                    <td className="table-td-action">
-                      <button
-                        type="button"
-                        className="btn-secondary"
-                        onClick={() => setSelectedTitre(t)}
-                      >
-                        <span className="material-symbols-outlined btn-icon">qr_code_2</span>
-                        Voir le QR
-                      </button>
-                    </td>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="btn-primary client-titre-qr-btn"
+                    onClick={() => setSelectedTitre(t)}
+                  >
+                    <span className="material-symbols-outlined btn-icon">qr_code_2</span>
+                    Présenter mon QR Code
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Vue Tableau Desktop (visible sur écrans > 640px) */}
+            <div className="table-responsive client-desktop-table">
+              <table className="user-table">
+                <thead>
+                  <tr className="table-header-row">
+                    <th className="table-header-th">Type</th>
+                    <th className="table-header-th">Statut</th>
+                    <th className="table-header-th">Expiration</th>
+                    <th className="table-header-th-action">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {titres.map((t) => (
+                    <tr key={t.id} className="table-row">
+                      <td className="table-td">
+                        <span className="role-badge" style={TYPE_COLORS[t.typeTitre]}>
+                          {TYPE_LABELS[t.typeTitre] || t.typeTitre}
+                        </span>
+                      </td>
+                      <td className="table-td">
+                        <span className="role-badge" style={STATUT_COLORS[t.statut]}>{t.statut}</span>
+                      </td>
+                      <td className="table-td">
+                        {t.dateExpiration ? (
+                          <>
+                            <div>{formatDateFR(t.dateExpiration)}</div>
+                            <div className="titre-meta">{tempsRestant(t.dateExpiration)}</div>
+                          </>
+                        ) : (
+                          'Illimitée'
+                        )}
+                      </td>
+                      <td className="table-td-action">
+                        <button
+                          type="button"
+                          className="btn-secondary"
+                          onClick={() => setSelectedTitre(t)}
+                        >
+                          <span className="material-symbols-outlined btn-icon">qr_code_2</span>
+                          Voir le QR
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </section>
 

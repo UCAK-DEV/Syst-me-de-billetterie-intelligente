@@ -320,7 +320,40 @@ function ScanValidation() {
               Réinitialiser
             </button>
           </div>
-          <div className="table-responsive">
+          {/* Liste Mobile de l'historique de scan (<= 640px) */}
+          <div className="scan-history-mobile-list">
+            {historiqueSession.map((item, idx) => (
+              <div key={idx} className={`scan-history-card ${item.autorise ? 'autorise' : 'refuse'}`}>
+                <div className="scan-history-card-top">
+                  <span
+                    className="role-badge"
+                    style={{
+                      backgroundColor: item.autorise ? '#dcfce7' : '#fee2e2',
+                      color: item.autorise ? '#15803d' : '#b91c1c',
+                    }}
+                  >
+                    {item.autorise ? 'Autorisé' : 'Refusé'}
+                  </span>
+                  <span className="scan-history-card-time">{item.heure}</span>
+                </div>
+                <div className="scan-history-card-code">
+                  <code>{item.code}</code>
+                </div>
+                <div className="scan-history-card-detail">
+                  {item.motifRefus ? (
+                    <span className="role-badge" style={motifColors(item.motifRefus)}>
+                      {motifLabel(item.motifRefus)}
+                    </span>
+                  ) : (
+                    <span>{item.message || 'Validation réussie'}</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Table Desktop de l'historique (> 640px) */}
+          <div className="table-responsive scan-history-desktop-table">
             <table className="user-table">
               <thead>
                 <tr className="table-header-row">

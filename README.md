@@ -153,44 +153,129 @@ npm test --prefix backend && npm test --prefix service-abonnements && npm test -
 ### Pipeline GitHub Actions (`.github/workflows/ci.yml`)
 
 Le projet intègre un pipeline CI automatique déclenché sur chaque `push` et `pull_request` sur les branches `main` et `develop` :
-1. **`test-backend`** : Récupère le code, installe Node.js 22, exécute `npm ci`, monte un conteneur de service MongoDB et lance l'ensemble de la suite de tests automatisés.
+1. **`test-backend`** : Récupère le code, installe Node.js 22, exécute `npm ci`, monte un conteneur de service MongoDB (`mongo:7`) avec vérification de santé, et lance l'ensemble de la suite de tests automatisés.
 2. **`build-frontend`** : Récupère le code, installe Node.js 22, exécute `npm ci` et valide la compilation de production avec `npm run build`.
 
 #### Secrets GitHub à configurer (Repository Settings > Secrets and variables > Actions) :
-- `MONGO_URI_TEST` : Chaîne de connexion à la base MongoDB de test (ex: MongoDB Atlas ou conteneur local).
+- `MONGO_URI_TEST` : Chaîne de connexion à la base MongoDB de test (ex: conteneur de service ou MongoDB Atlas).
 - `JWT_SECRET` : Clé secrète pour signer les jetons JWT de test.
 - `VITE_API_URL` : URL de l'API backend utilisée par le frontend.
 - `EMAIL_USER` / `EMAIL_PASS` : Identifiants SMTP pour les tests d'envoi d'e-mails.
 
-## Installation et démarrage
+---
 
-Prérequis : Node.js 18 ou plus, MongoDB en local, MySQL en local, PostgreSQL en local (ou via Docker).
+## Utilisation de Docker (TP 2 — Étape 1)
 
+Le backend dispose d'un `Dockerfile` basé sur Node.js 22 Alpine optimisé pour la production avec exclusion des fichiers inutiles via `.dockerignore`.
+
+### 1. Construire l'image Docker du backend
 ```bash
-# 1. Installation de toutes les dépendances
-npm run install-all
-
-# 2. Configuration des variables d'environnement
-# Créer backend/.env, service-abonnements/.env et service-billetterie/.env 
-# sur le modèle de leurs fichiers .env.example respectifs (même JWT_SECRET).
-
-# 3. Démarrer PostgreSQL (si conteneur Docker)
-docker run -d --name billetterie-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=billetterie_db -p 5432:5432 postgres:17-alpine
-
-# 4. Lancement global de l'application
-npm run dev
+cd backend
+docker build -t billetterie-backend .
 ```
 
-Démarre simultanément les 4 services :
-- Service Utilisateurs (port 5050)
-- Service Abonnements (port 5065)
-- Service Billetterie (port 5070)
-- Application Frontend React (port 5173)
+### 2. Exécuter le conteneur du backend
+```bash
+docker run -d -p 8000:8000 --name billetterie-backend --env-file .env billetterie-backend
+```
+
+### 3. Consulter les conteneurs et les logs
+```bash
+docker ps
+docker logs -f billetterie-backend
+```
+
+---
+
+## Orchestration avec Docker Compose (TP 2 — Étape 2)
+
+Le fichier `docker-compose.yml` à la racine orchestre le backend et sa base MongoDB avec persistance des données via volume nommé.
+
+### Services configurés :
+* `mongo` : Image officielle `mongo:7`, port exposé `27017:27017`, volume `mongo_data`.
+* `backend` : Image construite depuis `./backend`, port `8000:8000`, connecté au réseau Docker interne avec `MONGO_URI: mongodb://mongo:27017/billetterie`.
+
+### Commandes Docker Compose :
+```bash
+# Lancer les services en arrière-plan avec reconstruction :
+docker compose up --build -d
+
+# Vérifier l'état des conteneurs :
+docker compose ps
+
+# Consulter les logs en temps réel :
+docker compose logs -f
+
+# Arrêter les services :
+docker compose down
+
+# Arrêter et supprimer les volumes (réinitialisation complète) :
+docker compose down -v
+```
+
+---
+
+## Déploiement de la solution (TP 2 — Étapes 3 & 4)
+
+### 1. Déploiement du Backend (Render, Railway, VPS)
+* **Plateforme** : Créer un Web Service connecté au dépôt GitHub (ou pousser l'image Docker).
+* **Répertoire racine** : `backend`
+* **Commande de build** : `npm ci --omit=dev`
+* **Commande de démarrage** : `npm start`
+* **Variables d'environnement requises** :
+  | Variable | Rôle / Exemple |
+  |---|---|
+  | `PORT` | Port d'écoute de l'API (ex: `8000` ou assigné par la plateforme) |
+  | `MONGO_URI` | Chaîne de connexion MongoDB Atlas (`mongodb+srv://...`) |
+  | `JWT_SECRET` | Secret fort pour signer et valider les tokens JWT |
+  | `NODE_ENV` | `production` |
+  | `EMAIL_USER` | Compte SMTP pour l'envoi d'emails d'activation |
+  | `EMAIL_PASS` | Mot de passe d'application SMTP |
+
+### 2. Déploiement du Frontend (Vercel, Netlify, VPS)
+* **Plateforme** : Créer un projet statique connecté au dépôt GitHub.
+* **Répertoire racine** : `frontend`
+* **Commande de build** : `npm run build`
+* **Répertoire de sortie** : `dist`
+* **Variables d'environnement requises** :
+  | Variable | Rôle / Exemple |
+  |---|---|
+  | `VITE_API_URL` | URL HTTPS publique du backend déployé (ex: `https://billetterie-api.onrender.com`) |
+
+---
+
+## Comptes de test
+
+Après initialisation de la base (`npm run seed:admin --prefix backend` ou via l'API) :
+
+| Rôle | Email | Mot de passe initial | Accès |
+|---|---|---|---|
+| **Administrateur** | `admin@billetterie.com` | `Admin123!` | Tableau de bord, utilisateurs, formules, audit, abonnements, titres |
+| **Agent de contrôle** | `agent@billetterie.com` | `Agent123!` | Scan QR Code, titres, historique des passages |
+| **Client voyageur** | `client@billetterie.com` | `Client123!` | Espace client mobile/desktop, mes titres, consultation du QR Code |
+
+---
+
+## Problèmes rencontrés & Améliorations possibles
+
+### Problèmes résolus lors des TPs :
+1. **Concurrence sur les validations** : Deux validations simultanées du même ticket simple ou du dernier voyage d'un abonnement pouvaient causer une double dépense. Résolu avec un verrou pessimiste PostgreSQL transactionnel (`LOCK.UPDATE`).
+2. **Cohérence des services de la CI** : Le conteneur de service MongoDB sous GitHub Actions nécessitait une commande de healthcheck adaptée (`mongosh --eval 'db.runCommand({ ping: 1 })'`) pour éviter les démarrages prématurés des tests.
+3. **Responsivité mobile** : Amélioration complète de l'interface pour smartphone (barre de navigation basse, menu tiroir off-canvas, cartes tactiles pour les clients, et écran de scan caméra plein écran).
+
+### Améliorations possibles :
+* **Cache Redis** : Mise en cache des formules et des droits à voyager pour accélérer encore le temps de réponse lors des pics de scan aux portiques.
+* **Mode hors-ligne (PWA)** : Permettre aux agents de valider des titres en mode déconnecté avec une clé cryptographique asynchrone et synchronisation différée.
+* **Docker Compose Multi-services** : Ajouter le service PostgreSQL (Billetterie) et MySQL (Abonnements) dans un docker-compose complet de production.
+
+---
 
 ## Documentation
 
-- [PLAN-SERVICE-BILLETTERIE.md](PLAN-SERVICE-BILLETTERIE.md) — contrat d'API, modèle PostgreSQL, concurrence, audit et règles du Service Billetterie
-- [PLAN-SERVICE-ABONNEMENTS.md](PLAN-SERVICE-ABONNEMENTS.md) — contrat d'API et architecture du Service Abonnements
-- [docs/service-billetterie.md](docs/service-billetterie.md) — livrable Service Billetterie : fonctionnalités critiques, plan de tests, tableau de synthèse, justifications
-- [docs/service-abonnements.md](docs/service-abonnements.md) — livrable Service Abonnements
-- [docs/TP1-service-utilisateurs.md](docs/TP1-service-utilisateurs.md) — livrable Service Utilisateurs
+- [CHECKLIST_DEPLOIEMENT.md](CHECKLIST_DEPLOIEMENT.md) — Grille de vérification post-déploiement et scénario métier (TP 2)
+- [PLAN-SERVICE-BILLETTERIE.md](PLAN-SERVICE-BILLETTERIE.md) — Contrat d'API, modèle PostgreSQL, concurrence, audit et règles du Service Billetterie
+- [PLAN-SERVICE-ABONNEMENTS.md](PLAN-SERVICE-ABONNEMENTS.md) — Contrat d'API et architecture du Service Abonnements
+- [docs/service-billetterie.md](docs/service-billetterie.md) — Livrable Service Billetterie : fonctionnalités critiques, plan de tests
+- [docs/service-abonnements.md](docs/service-abonnements.md) — Livrable Service Abonnements
+- [docs/TP1-service-utilisateurs.md](docs/TP1-service-utilisateurs.md) — Livrable Service Utilisateurs
+

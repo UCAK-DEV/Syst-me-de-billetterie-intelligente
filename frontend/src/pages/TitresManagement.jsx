@@ -62,9 +62,11 @@ function TitresManagement() {
   const [selectedTitreForQr, setSelectedTitreForQr] = useState(null);
 
   // Affichage : liste (tableau dense) ou grille (QR mis en avant)
-  const [viewMode, setViewMode] = useState(
-    () => localStorage.getItem('titresViewMode') || 'liste'
-  );
+  const [viewMode, setViewMode] = useState(() => {
+    const saved = localStorage.getItem('titresViewMode');
+    if (saved) return saved;
+    return typeof window !== 'undefined' && window.innerWidth <= 768 ? 'grille' : 'liste';
+  });
   const changerVue = (mode) => {
     setViewMode(mode);
     localStorage.setItem('titresViewMode', mode);
