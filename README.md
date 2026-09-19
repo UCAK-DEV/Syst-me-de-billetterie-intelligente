@@ -1,4 +1,8 @@
 # Système de billetterie intelligente
+> **Université Cheikh Ahmadoul Khadim (UCAK) de Touba**  
+> Projet intégrateur de Billetterie & Transport multi-services  
+> **Application en direct :** [https://sunuticket.vercel.app](https://sunuticket.vercel.app)  
+> **Auteurs :** Makhtar WADE & Elhadj Fallou BOUSSO
 
 Application de gestion pour un système de billetterie de transport, composée de trois microservices indépendants et communicants :
 - **Service Utilisateurs** (`backend/`) : authentification, gestion des comptes (administrateurs, agents, clients), profil.
@@ -248,11 +252,11 @@ docker compose down -v
 
 Après initialisation de la base (`npm run seed:admin --prefix backend` ou via l'API) :
 
-| Rôle | Email | Mot de passe initial | Accès |
+| Rôle | Email | Mot de passe | Accès |
 |---|---|---|---|
-| **Administrateur** | `admin@billetterie.com` | `Admin123!` | Tableau de bord, utilisateurs, formules, audit, abonnements, titres |
-| **Agent de contrôle** | `agent@billetterie.com` | `Agent123!` | Scan QR Code, titres, historique des passages |
-| **Client voyageur** | `client@billetterie.com` | `Client123!` | Espace client mobile/desktop, mes titres, consultation du QR Code |
+| **Administrateur** | `admin@billetterie.com` | `Admin1234` | Tableau de bord, utilisateurs, formules, audit, abonnements, titres |
+| **Agent de contrôle** | `agent@billetterie.com` | `Admin1234` | Scan QR Code, titres, historique des passages |
+| **Client voyageur** | `client@billetterie.com` | `Admin1234` | Espace client mobile/desktop, mes titres, consultation du QR Code |
 
 ---
 
