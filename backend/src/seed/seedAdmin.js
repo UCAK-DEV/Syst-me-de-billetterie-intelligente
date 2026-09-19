@@ -10,38 +10,63 @@ dotenv.config();
 const seedAdmin = async () => {
   await connectDB();
 
-  const emails = [
-    (process.env.ADMIN_EMAIL || 'admin@billetterie.com').toLowerCase(),
-    'admin@billeterie.com'
+  const defaultUsers = [
+    {
+      nom: 'Admin',
+      prenom: 'Super',
+      email: (process.env.ADMIN_EMAIL || 'admin@billetterie.com').toLowerCase(),
+      telephone: '+221770000000',
+      role: 'Administrateur',
+      password: process.env.ADMIN_PASSWORD || 'Admin1234',
+    },
+    {
+      nom: 'Admin',
+      prenom: 'Super',
+      email: 'admin@billeterie.com',
+      telephone: '+221770000001',
+      role: 'Administrateur',
+      password: process.env.ADMIN_PASSWORD || 'Admin1234',
+    },
+    {
+      nom: 'Diallo',
+      prenom: 'Agent',
+      email: 'agent@billetterie.com',
+      telephone: '+221770000002',
+      role: 'Agent',
+      password: process.env.ADMIN_PASSWORD || 'Admin1234',
+    },
+    {
+      nom: 'Sow',
+      prenom: 'Client',
+      email: 'client@billetterie.com',
+      telephone: '+221770000003',
+      role: 'Client',
+      password: process.env.ADMIN_PASSWORD || 'Admin1234',
+    },
   ];
-  const password = process.env.ADMIN_PASSWORD || 'Admin1234';
 
-  for (let i = 0; i < emails.length; i++) {
-    const email = emails[i];
-    let admin = await User.findOne({ email });
-    if (admin) {
-      admin.password = password;
-      admin.status = 'Actif';
-      admin.role = 'Administrateur';
-      admin.mustChangePassword = false;
-      await admin.save();
-      console.log(`Admin existant réinitialisé : ${email}`);
+  for (const u of defaultUsers) {
+    let user = await User.findOne({ email: u.email });
+    if (user) {
+      user.password = u.password;
+      user.status = 'Actif';
+      user.role = u.role;
+      user.nom = u.nom;
+      user.prenom = u.prenom;
+      user.mustChangePassword = false;
+      await user.save();
+      console.log(`Utilisateur existant réinitialisé : ${u.email} (${u.role})`);
     } else {
-      admin = await User.create({
-        nom: 'Admin',
-        prenom: 'Super',
-        email,
-        telephone: `+22177000000${i}`,
-        role: 'Administrateur',
+      user = await User.create({
+        ...u,
         status: 'Actif',
-        password,
         mustChangePassword: false,
       });
-      console.log(`Admin créé : ${email}`);
+      console.log(`Utilisateur créé : ${u.email} (${u.role})`);
     }
   }
 
-  console.log(`  Mot de passe : ${password}`);
+  console.log(`  Mot de passe par défaut pour tous : ${process.env.ADMIN_PASSWORD || 'Admin1234'}`);
   await mongoose.disconnect();
   process.exit(0);
 };
