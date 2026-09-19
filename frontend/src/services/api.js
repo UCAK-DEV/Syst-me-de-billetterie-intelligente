@@ -20,9 +20,14 @@ const API_URL = rawApiUrl;
 const SERVER_ORIGIN = API_URL.replace(/\/api\/?$/, '');
 
 // Construit l'URL complète d'une photo de profil ('' si aucune photo)
+// Gère les Data URLs base64 (mode démo), les URLs absolues et les chemins relatifs
 export function photoUrl(photo) {
   if (!photo) return '';
+  // Data URL (base64) générée en mode démo — utilisable directement
+  if (photo.startsWith('data:')) return photo;
+  // URL absolue (http/https) — retournée telle quelle
   if (/^https?:\/\//i.test(photo)) return photo;
+  // Chemin relatif — préfixé par l'origine du serveur backend
   return `${SERVER_ORIGIN}${photo}`;
 }
 
@@ -184,9 +189,37 @@ export const api = {
       body: JSON.stringify({ oldPassword, newPassword }),
     }),
 
-  uploadPhoto: (file) => {
-    const formData = new FormData();
-    formData.append('photo', file);
-    return request('/users/profile/photo', { method: 'POST', body: formData });
+  uploadPhoto: async (file) => {
+    // Tente d'abord l'upload réel vers le backend
+    try {
+      const formData = new FormData();
+      formData.append('photo', file);
+      return await request('/users/profile/photo', { method: 'POST', body: formData });
+    } catch (err) {
+      // Repli mock : si le serveur est injoignable (mode démo Vercel),
+      // on génère une Data URL locale de la photo et on met à jour l'utilisateur stocké
+      if (err.message && err.message.includes('contacter le serveur')) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const dataUrl = e.target.result;
+            // Mise à jour de l'utilisateur local avec la nouvelle photo (Data URL)
+            const storedUser = getStoredUser();
+            if (storedUser) {
+              storedUser.photo = dataUrl;
+              setStoredUser(storedUser);
+            }
+            resolve({
+              message: 'Photo mise à jour (mode démo)',
+              photo: dataUrl,
+              user: { ...storedUser, photo: dataUrl },
+            });
+          };
+          reader.onerror = () => reject(new Error('Impossible de lire le fichier image'));
+          reader.readAsDataURL(file);
+        });
+      }
+      throw err;
+    }
   },
 };
