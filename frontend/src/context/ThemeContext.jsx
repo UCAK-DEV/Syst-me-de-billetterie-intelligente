@@ -1,141 +1,66 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 /**
- * Charte Graphique Officielle des Réseaux de Transport Sénégalais
- * Conçu selon les normes de design system pour la mobilité urbaine & interurbaine.
+ * Nuancier de couleurs d'accentuation avec pastilles simples et directes.
  */
-export const TRANSIT_OPERATORS = [
-  {
-    id: 'brt',
-    name: 'BRT Dakar Mobilités',
-    shortCode: 'BRT',
-    network: 'Bus Rapid Transit (Lignes B1-B4)',
-    badge: '100% Électrique',
-    badgeColor: '#0284c7',
-    hex: '#0284c7',
-    hover: '#0369a1',
-    rgb: '2, 132, 199',
-    description: 'Flotte de bus électriques à haut niveau de service de l’agglomération dakaroise.',
-  },
-  {
-    id: 'ter',
-    name: 'TER Dakar (Seter)',
-    shortCode: 'TER',
-    network: 'Ligne Express Dakar - AIBD',
-    badge: 'Ferroviaire Express',
-    badgeColor: '#059669',
-    hex: '#059669',
-    hover: '#047857',
-    rgb: '5, 150, 105',
-    description: 'Rames Coradia express reliant le centre-ville de Dakar à Diamniadio et l’Aéroport.',
-  },
-  {
-    id: 'ddd',
-    name: 'Dakar Dem Dikk',
-    shortCode: 'DDD',
-    network: 'Réseau Urbain & Sénégal Dem Dikk',
-    badge: 'Réseau National Bus',
-    badgeColor: '#0077b6',
-    hex: '#0077b6',
-    hover: '#023e8a',
-    rgb: '0, 119, 182',
-    description: 'Opérateur public historique de transport de passagers urbain et interurbain.',
-  },
-  {
-    id: 'national',
-    name: 'Sénégal Mobilités (CETUD)',
-    shortCode: 'CETUD',
-    network: 'Autorité Organisatrice des Transports',
-    badge: 'Charte Républicaine',
-    badgeColor: '#2563eb',
-    hex: '#2563eb',
-    hover: '#1d4ed8',
-    rgb: '37, 99, 235',
-    description: 'Identité unifiée de régulation et de billettique intégrée pour tout le pays.',
-  },
+export const COLOR_PRESETS = [
+  { id: 'blue', name: 'Bleu', hex: '#2563eb', hover: '#1d4ed8', rgb: '37, 99, 235' },
+  { id: 'green', name: 'Vert', hex: '#10b981', hover: '#059669', rgb: '16, 185, 129' },
+  { id: 'orange', name: 'Orange', hex: '#f97316', hover: '#ea580c', rgb: '249, 115, 22' },
+  { id: 'purple', name: 'Violet', hex: '#8b5cf6', hover: '#7c3aed', rgb: '139, 92, 246' },
+  { id: 'red', name: 'Rouge', hex: '#ef4444', hover: '#dc2626', rgb: '239, 68, 68' },
+  { id: 'gray', name: 'Gris', hex: '#64748b', hover: '#475569', rgb: '100, 116, 139' },
 ];
 
 /**
- * Modes Opérationnels d'Éclairage & Accessibilité (WCAG 2.1 AAA)
+ * Modes d'ambiance sobres
  */
-export const DISPLAY_MODES = [
-  {
-    id: 'sunlight',
-    name: 'Plein Soleil (Extérieur)',
-    icon: 'wb_sunny',
-    standard: 'Contraste AAA (12:1)',
-    desc: 'Fond blanc pur et typographie noir d’encre pour les contrôleurs en station sous fort ensoleillement.',
-  },
-  {
-    id: 'office',
-    name: 'Standard Bureau (Ardoise)',
-    icon: 'desktop_windows',
-    standard: 'Anti-fatigue oculaire',
-    desc: 'Teinte sombre gris bleuté équilibrée pour les postes de supervision et agents au guichet.',
-  },
-  {
-    id: 'oled',
-    name: 'Nuit & Éco Batterie (OLED)',
-    icon: 'dark_mode',
-    standard: 'Économie batterie 30%',
-    desc: 'Noir absolu éteignant les pixels AMOLED pour prolonger l’autonomie des terminaux mobiles de contrôle.',
-  },
+export const THEME_MODES = [
+  { id: 'dark', name: 'Sombre', icon: 'dark_mode', desc: 'Fond sombre profond' },
+  { id: 'slate', name: 'Ardoise', icon: 'night_sight', desc: 'Gris bleuté équilibré' },
+  { id: 'light', name: 'Clair', icon: 'light_mode', desc: 'Fond blanc éclatant' },
 ];
 
 /**
- * Ergonomie & Densité d'Affichage Métier (Loi de Fitts)
+ * Styles de formes
  */
-export const UI_DENSITIES = [
-  {
-    id: 'touch',
-    name: 'Terrain / Confort Tactile',
-    icon: 'touch_app',
-    badge: 'Cibles 48px+',
-    desc: 'Boutons agrandis adaptés à l’usage en station, en marche ou avec des gants de travail.',
-  },
-  {
-    id: 'compact',
-    name: 'Supervision / Synthétique',
-    icon: 'table_chart',
-    badge: 'Haute densité',
-    desc: 'Tableaux et cartes resserrés pour visualiser davantage de validations et titres par écran.',
-  },
+export const RADIUS_PRESETS = [
+  { id: 'rounded', name: 'Arrondi', desc: 'Style moderne arrondi (16px)' },
+  { id: 'compact', name: 'Compact', desc: 'Style sobre et droit (8px)' },
 ];
 
 const ThemeContext = createContext({
-  operator: 'brt',
-  displayMode: 'office',
-  density: 'touch',
+  color: 'blue',
+  theme: 'dark',
+  borderRadius: 'rounded',
   customizerOpen: false,
-  setOperator: () => {},
-  setDisplayMode: () => {},
-  setDensity: () => {},
-  toggleDisplayMode: () => {},
+  setColor: () => {},
+  setTheme: () => {},
+  setBorderRadius: () => {},
+  toggleTheme: () => {},
   openCustomizer: () => {},
   closeCustomizer: () => {},
   resetCustomization: () => {},
-  // Rétrocompatibilité
-  theme: 'dark',
-  accentColor: 'brt',
-  borderRadius: 'rounded',
+  // Alias pour rétrocompatibilité
+  accentColor: 'blue',
+  setAccentColor: () => {},
 });
 
 export function ThemeProvider({ children }) {
-  const [operator, setOperatorState] = useState(() => {
-    const saved = localStorage.getItem('transitOperator') || localStorage.getItem('appAccentColor');
-    return TRANSIT_OPERATORS.some((o) => o.id === saved) ? saved : 'brt';
+  const [color, setColorState] = useState(() => {
+    const saved = localStorage.getItem('appColor') || localStorage.getItem('appAccentColor');
+    return COLOR_PRESETS.some((c) => c.id === saved) ? saved : 'blue';
   });
 
-  const [displayMode, setDisplayModeState] = useState(() => {
-    const saved = localStorage.getItem('transitDisplayMode') || localStorage.getItem('theme');
-    if (saved === 'sunlight' || saved === 'light') return 'sunlight';
-    if (saved === 'oled' || saved === 'dark') return 'oled';
-    return 'office'; // Par défaut ardoise pro
+  const [theme, setThemeState] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'dark' || saved === 'slate' || saved === 'light') return saved;
+    return 'dark';
   });
 
-  const [density, setDensityState] = useState(() => {
-    const saved = localStorage.getItem('transitDensity') || localStorage.getItem('appBorderRadius');
-    return saved === 'compact' ? 'compact' : 'touch';
+  const [borderRadius, setBorderRadiusState] = useState(() => {
+    const saved = localStorage.getItem('appBorderRadius');
+    return saved === 'compact' ? 'compact' : 'rounded';
   });
 
   const [customizerOpen, setCustomizerOpen] = useState(false);
@@ -144,117 +69,105 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     const root = document.documentElement;
 
-    // Attributs racine
-    root.setAttribute('data-theme', displayMode === 'sunlight' ? 'light' : 'dark');
-    root.setAttribute('data-mode', displayMode);
-    root.setAttribute('data-operator', operator);
-    root.setAttribute('data-density', density);
+    root.setAttribute('data-theme', theme);
+    root.setAttribute('data-color', color);
+    root.setAttribute('data-accent', color);
+    root.setAttribute('data-radius', borderRadius);
 
-    // Recherche de l'opérateur actif
-    const currentOp = TRANSIT_OPERATORS.find((o) => o.id === operator) || TRANSIT_OPERATORS[0];
+    // Recherche de la couleur active
+    const current = COLOR_PRESETS.find((c) => c.id === color) || COLOR_PRESETS[0];
 
-    // Variables de couleurs métier
-    root.style.setProperty('--primary-color', currentOp.hex);
-    root.style.setProperty('--primary-hover', currentOp.hover);
-    root.style.setProperty('--primary-dark', currentOp.hover);
-    root.style.setProperty('--primary-rgb', currentOp.rgb);
-    root.style.setProperty('--primary-glow', `rgba(${currentOp.rgb}, 0.45)`);
-    root.style.setProperty('--primary-glow-subtle', `rgba(${currentOp.rgb}, 0.16)`);
-    root.style.setProperty('--primary-light', `rgba(${currentOp.rgb}, 0.12)`);
+    // Variables de couleurs d'accent
+    root.style.setProperty('--primary-color', current.hex);
+    root.style.setProperty('--primary-hover', current.hover);
+    root.style.setProperty('--primary-dark', current.hover);
+    root.style.setProperty('--primary-rgb', current.rgb);
+    root.style.setProperty('--primary-glow', `rgba(${current.rgb}, 0.35)`);
+    root.style.setProperty('--primary-glow-subtle', `rgba(${current.rgb}, 0.15)`);
+    root.style.setProperty('--primary-light', `rgba(${current.rgb}, 0.12)`);
 
-    // Densité & Ergonomie
-    if (density === 'compact') {
-      root.style.setProperty('--radius-card', '10px');
+    // Variables des formes
+    if (borderRadius === 'compact') {
+      root.style.setProperty('--radius-card', '8px');
       root.style.setProperty('--radius-btn', '8px');
       root.style.setProperty('--radius-sm', '6px');
-      root.style.setProperty('--touch-target-min', '38px');
     } else {
-      root.style.setProperty('--radius-card', '18px');
-      root.style.setProperty('--radius-btn', '14px');
-      root.style.setProperty('--radius-sm', '10px');
-      root.style.setProperty('--touch-target-min', '48px');
+      root.style.setProperty('--radius-card', '16px');
+      root.style.setProperty('--radius-btn', '12px');
+      root.style.setProperty('--radius-sm', '8px');
     }
 
-    // Gestion de l'ambiance lumineuse
-    if (displayMode === 'sunlight') {
-      // Mode Plein Soleil : Contraste maximal WCAG AAA
-      root.style.setProperty('--body-bg', '#f4f5f7');
-      root.style.setProperty('--card-bg', '#ffffff');
-      root.style.setProperty('--card-glass-bg', '#ffffff');
-      root.style.setProperty('--text-dark', '#09090b');
-      root.style.setProperty('--text-muted', '#475569');
-      root.style.setProperty('--border-glass', '#cbd5e1');
-      root.style.setProperty('--floating-nav-bg', 'rgba(255, 255, 255, 0.96)');
-    } else if (displayMode === 'oled') {
-      // Mode Nuit OLED : Noir pur pour économiser la batterie
-      root.style.setProperty('--body-bg', '#000000');
-      root.style.setProperty('--card-bg', '#09090b');
-      root.style.setProperty('--card-glass-bg', '#09090b');
-      root.style.setProperty('--text-dark', '#ffffff');
-      root.style.setProperty('--text-muted', '#a1a1aa');
-      root.style.setProperty('--border-glass', '#27272a');
-      root.style.setProperty('--floating-nav-bg', 'rgba(9, 9, 11, 0.94)');
-    } else {
-      // Mode Office (Ardoise Pro) : Équilibré reposant
-      root.style.setProperty('--body-bg', '#0b0f19');
-      root.style.setProperty('--card-bg', '#111827');
-      root.style.setProperty('--card-glass-bg', 'rgba(17, 24, 39, 0.92)');
-      root.style.setProperty('--text-dark', '#f9fafb');
+    // Gestion de l'ambiance de fond
+    if (theme === 'dark') {
+      root.style.setProperty('--body-bg', '#090d16');
+      root.style.setProperty('--card-bg', '#111726');
+      root.style.setProperty('--card-glass-bg', 'rgba(17, 23, 38, 0.9)');
+      root.style.setProperty('--text-dark', '#f3f4f6');
       root.style.setProperty('--text-muted', '#94a3b8');
-      root.style.setProperty('--border-glass', 'rgba(255, 255, 255, 0.1)');
-      root.style.setProperty('--floating-nav-bg', 'rgba(17, 24, 39, 0.92)');
+      root.style.setProperty('--border-glass', 'rgba(255, 255, 255, 0.08)');
+      root.style.setProperty('--floating-nav-bg', 'rgba(15, 21, 32, 0.92)');
+    } else if (theme === 'slate') {
+      root.style.setProperty('--body-bg', '#0f172a');
+      root.style.setProperty('--card-bg', '#1e293b');
+      root.style.setProperty('--card-glass-bg', 'rgba(30, 41, 59, 0.9)');
+      root.style.setProperty('--text-dark', '#f8fafc');
+      root.style.setProperty('--text-muted', '#94a3b8');
+      root.style.setProperty('--border-glass', 'rgba(255, 255, 255, 0.12)');
+      root.style.setProperty('--floating-nav-bg', 'rgba(24, 33, 47, 0.92)');
+    } else {
+      root.style.setProperty('--body-bg', '#f8fafc');
+      root.style.setProperty('--card-bg', '#ffffff');
+      root.style.setProperty('--card-glass-bg', 'rgba(255, 255, 255, 0.95)');
+      root.style.setProperty('--text-dark', '#0f172a');
+      root.style.setProperty('--text-muted', '#64748b');
+      root.style.setProperty('--border-glass', '#e2e8f0');
+      root.style.setProperty('--floating-nav-bg', 'rgba(255, 255, 255, 0.95)');
     }
 
-    // Persistance locale
-    localStorage.setItem('transitOperator', operator);
-    localStorage.setItem('appAccentColor', operator);
-    localStorage.setItem('transitDisplayMode', displayMode);
-    localStorage.setItem('theme', displayMode === 'sunlight' ? 'light' : 'dark');
-    localStorage.setItem('transitDensity', density);
-    localStorage.setItem('appBorderRadius', density === 'compact' ? 'compact' : 'rounded');
-  }, [operator, displayMode, density]);
+    // Persistance dans localStorage
+    localStorage.setItem('appColor', color);
+    localStorage.setItem('appAccentColor', color);
+    localStorage.setItem('theme', theme);
+    localStorage.setItem('appBorderRadius', borderRadius);
+  }, [color, theme, borderRadius]);
 
-  const toggleDisplayMode = () => {
-    setDisplayModeState((prev) => {
-      if (prev === 'office') return 'sunlight';
-      if (prev === 'sunlight') return 'oled';
-      return 'office';
+  const toggleTheme = () => {
+    setThemeState((prev) => {
+      if (prev === 'dark') return 'slate';
+      if (prev === 'slate') return 'light';
+      return 'dark';
     });
   };
 
-  const setOperator = (op) => setOperatorState(op);
-  const setDisplayMode = (m) => setDisplayModeState(m);
-  const setDensity = (d) => setDensityState(d);
+  const setColor = (c) => setColorState(c);
+  const setTheme = (t) => setThemeState(t);
+  const setBorderRadius = (r) => setBorderRadiusState(r);
   const openCustomizer = () => setCustomizerOpen(true);
   const closeCustomizer = () => setCustomizerOpen(false);
 
   const resetCustomization = () => {
-    setOperatorState('brt');
-    setDisplayModeState('office');
-    setDensityState('touch');
+    setColorState('blue');
+    setThemeState('dark');
+    setBorderRadiusState('rounded');
   };
 
   return (
     <ThemeContext.Provider
       value={{
-        operator,
-        displayMode,
-        density,
+        color,
+        theme,
+        borderRadius,
         customizerOpen,
-        setOperator,
-        setDisplayMode,
-        setDensity,
-        toggleDisplayMode,
+        setColor,
+        setTheme,
+        setBorderRadius,
+        toggleTheme,
         openCustomizer,
         closeCustomizer,
         resetCustomization,
-        // Compatibilité avec composants existants
-        theme: displayMode === 'sunlight' ? 'light' : 'dark',
-        accentColor: operator,
-        borderRadius: density === 'compact' ? 'compact' : 'rounded',
-        setTheme: (t) => setDisplayModeState(t === 'light' ? 'sunlight' : 'office'),
-        setAccentColor: (a) => setOperatorState(a),
-        setBorderRadius: (r) => setDensityState(r === 'compact' ? 'compact' : 'touch'),
+        // Alias rétrocompatibilité
+        accentColor: color,
+        setAccentColor: setColor,
       }}
     >
       {children}
@@ -265,4 +178,5 @@ export function ThemeProvider({ children }) {
 export function useTheme() {
   return useContext(ThemeContext);
 }
+
 

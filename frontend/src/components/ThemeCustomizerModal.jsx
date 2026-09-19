@@ -1,54 +1,39 @@
 import React from 'react';
 import {
   useTheme,
-  TRANSIT_OPERATORS,
-  DISPLAY_MODES,
-  UI_DENSITIES,
+  COLOR_PRESETS,
+  THEME_MODES,
+  RADIUS_PRESETS,
 } from '../context/ThemeContext';
 
 function ThemeCustomizerModal() {
   const {
-    operator,
-    displayMode,
-    density,
+    color,
+    theme,
+    borderRadius,
     customizerOpen,
-    setOperator,
-    setDisplayMode,
-    setDensity,
+    setColor,
+    setTheme,
+    setBorderRadius,
     closeCustomizer,
     resetCustomization,
   } = useTheme();
 
   if (!customizerOpen) return null;
 
-  const currentOp = TRANSIT_OPERATORS.find((o) => o.id === operator) || TRANSIT_OPERATORS[0];
-  const currentMode = DISPLAY_MODES.find((m) => m.id === displayMode) || DISPLAY_MODES[0];
+  const currentColor = COLOR_PRESETS.find((c) => c.id === color) || COLOR_PRESETS[0];
 
   return (
     <div className="customizer-backdrop" onClick={closeCustomizer}>
       <div className="customizer-panel" onClick={(e) => e.stopPropagation()}>
-        {/* En-tête professionnel */}
+        {/* En-tête sobre */}
         <div className="customizer-header">
           <div className="customizer-title-row">
-            <div
-              className="customizer-icon-wrapper"
-              style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '12px',
-                backgroundColor: 'var(--primary-light)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--primary-color)',
-              }}
-            >
-              <span className="material-symbols-outlined">directions_bus</span>
-            </div>
+            <span className="material-symbols-outlined customizer-icon">palette</span>
             <div>
-              <h3 className="customizer-title">Charte Réseau & Ergonomie</h3>
+              <h3 className="customizer-title">Personnalisation</h3>
               <p className="customizer-subtitle">
-                Identité visuelle du transporteur et accessibilité terrain (Norme WCAG 2.1)
+                Choisissez votre couleur d'accentuation, l'ambiance et le style des formes
               </p>
             </div>
           </div>
@@ -64,153 +49,107 @@ function ThemeCustomizerModal() {
 
         {/* Corps des réglages */}
         <div className="customizer-body">
-          {/* Section 1 : Réseau de Transport */}
+          {/* Section 1 : Nuancier de Pastilles Simples */}
           <div className="customizer-section">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <label className="customizer-label">1. Réseau de Transport (Opérateur)</label>
-              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Livrée officielle</span>
-            </div>
-            <div className="operator-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.65rem' }}>
-              {TRANSIT_OPERATORS.map((op) => {
-                const isActive = op.id === operator;
+            <label className="customizer-label">Couleur d'accentuation</label>
+            <div className="accent-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.65rem' }}>
+              {COLOR_PRESETS.map((preset) => {
+                const isActive = preset.id === color;
                 return (
                   <button
-                    key={op.id}
+                    key={preset.id}
                     type="button"
                     className={`accent-card${isActive ? ' active' : ''}`}
-                    onClick={() => setOperator(op.id)}
+                    onClick={() => setColor(preset.id)}
                     style={{
                       display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'flex-start',
-                      padding: '0.8rem 0.95rem',
-                      borderRadius: '14px',
-                      gap: '0.35rem',
-                      textAlign: 'left',
-                      borderColor: isActive ? op.hex : 'var(--border-glass)',
+                      alignItems: 'center',
+                      gap: '0.7rem',
+                      padding: '0.7rem 0.85rem',
+                      borderRadius: '12px',
                       backgroundColor: isActive ? 'var(--primary-light)' : 'rgba(255, 255, 255, 0.03)',
+                      borderColor: isActive ? preset.hex : 'var(--border-glass)',
+                      cursor: 'pointer',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            width: '26px',
-                            height: '26px',
-                            borderRadius: '8px',
-                            backgroundColor: op.hex,
-                            color: '#ffffff',
-                            fontWeight: 800,
-                            fontSize: '0.68rem',
-                            letterSpacing: '0.04em',
-                          }}
-                        >
-                          {op.shortCode}
-                        </span>
-                        <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-dark)' }}>
-                          {op.name}
-                        </span>
-                      </div>
+                    <span
+                      className="accent-circle"
+                      style={{
+                        width: '26px',
+                        height: '26px',
+                        minWidth: '26px',
+                        borderRadius: '50%',
+                        backgroundColor: preset.hex,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: isActive ? `0 0 10px ${preset.hex}` : 'none',
+                      }}
+                    >
                       {isActive && (
-                        <span
-                          className="material-symbols-outlined"
-                          style={{ color: op.hex, fontSize: '18px' }}
-                        >
-                          check_circle
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#ffffff', fontWeight: 900 }}>
+                          check
                         </span>
                       )}
-                    </div>
-                    <span
-                      style={{
-                        fontSize: '0.68rem',
-                        fontWeight: 600,
-                        color: op.hex,
-                        backgroundColor: 'rgba(255,255,255,0.06)',
-                        padding: '2px 8px',
-                        borderRadius: '999px',
-                        marginTop: '2px',
-                      }}
-                    >
-                      {op.badge}
                     </span>
-                    <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '4px 0 0', lineHeight: 1.3 }}>
-                      {op.description}
-                    </p>
+                    <span style={{ fontWeight: 650, fontSize: '0.85rem', color: 'var(--text-dark)' }}>
+                      {preset.name}
+                    </span>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Section 2 : Conditions Lumineuses & Accessibilité */}
+          {/* Section 2 : Ambiance de fond */}
           <div className="customizer-section">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <label className="customizer-label">2. Environnement Lumineux & Ergonomie</label>
-              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Norme WCAG 2.1 AAA</span>
-            </div>
+            <label className="customizer-label">Ambiance</label>
             <div className="mode-selector-row">
-              {DISPLAY_MODES.map((mode) => {
-                const isActive = mode.id === displayMode;
+              {THEME_MODES.map((m) => {
+                const isActive = m.id === theme;
                 return (
                   <button
-                    key={mode.id}
+                    key={m.id}
                     type="button"
                     className={`mode-pill${isActive ? ' active' : ''}`}
-                    onClick={() => setDisplayMode(mode.id)}
-                    style={{ padding: '0.75rem 0.6rem', textAlign: 'center' }}
+                    onClick={() => setTheme(m.id)}
+                    style={{
+                      padding: '0.75rem 0.5rem',
+                      borderRadius: '12px',
+                      cursor: 'pointer',
+                    }}
                   >
-                    <span className="material-symbols-outlined mode-icon">{mode.icon}</span>
-                    <span className="mode-label" style={{ marginTop: '2px' }}>{mode.name}</span>
-                    <span
-                      style={{
-                        fontSize: '0.65rem',
-                        color: isActive ? 'var(--primary-color)' : 'var(--text-muted)',
-                        fontWeight: 600,
-                      }}
-                    >
-                      {mode.standard}
-                    </span>
+                    <span className="material-symbols-outlined mode-icon">{m.icon}</span>
+                    <span className="mode-label" style={{ marginTop: '2px' }}>{m.name}</span>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{m.desc}</span>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Section 3 : Densité Métier */}
+          {/* Section 3 : Formes */}
           <div className="customizer-section">
-            <label className="customizer-label">3. Densité d'Interface & Cibles Tactiles (Loi de Fitts)</label>
+            <label className="customizer-label">Style des formes</label>
             <div className="radius-selector-row">
-              {UI_DENSITIES.map((d) => {
-                const isActive = d.id === density;
+              {RADIUS_PRESETS.map((rad) => {
+                const isActive = rad.id === borderRadius;
                 return (
                   <button
-                    key={d.id}
+                    key={rad.id}
                     type="button"
                     className={`radius-pill${isActive ? ' active' : ''}`}
-                    onClick={() => setDensity(d.id)}
+                    onClick={() => setBorderRadius(rad.id)}
+                    style={{
+                      padding: '0.75rem 1rem',
+                      borderRadius: '12px',
+                      cursor: 'pointer',
+                    }}
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
-                      {d.icon}
-                    </span>
+                    <span className="material-symbols-outlined">rounded_corner</span>
                     <div>
-                      <div className="radius-name" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        {d.name}
-                        <span
-                          style={{
-                            fontSize: '0.65rem',
-                            padding: '1px 6px',
-                            borderRadius: '999px',
-                            backgroundColor: isActive ? 'var(--primary-color)' : 'rgba(255,255,255,0.1)',
-                            color: '#ffffff',
-                          }}
-                        >
-                          {d.badge}
-                        </span>
-                      </div>
-                      <div className="radius-desc">{d.desc}</div>
+                      <div className="radius-name">{rad.name}</div>
+                      <div className="radius-desc">{rad.desc}</div>
                     </div>
                   </button>
                 );
@@ -218,67 +157,65 @@ function ThemeCustomizerModal() {
             </div>
           </div>
 
-          {/* Section 4 : Échantillon Métier & Titre de Transport */}
+          {/* Section 4 : Aperçu direct */}
           <div className="customizer-section">
-            <label className="customizer-label">Aperçu Réel du Titre de Transport</label>
+            <label className="customizer-label">Aperçu direct</label>
             <div
               className="customizer-preview-box"
               style={{
-                backgroundColor: displayMode === 'sunlight' ? '#ffffff' : 'rgba(0, 0, 0, 0.4)',
-                border: '1.5px solid var(--border-glass)',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                borderRadius: 'var(--radius-card, 14px)',
+                padding: '1rem',
+                backgroundColor: 'rgba(0, 0, 0, 0.25)',
+                border: '1px dashed var(--border-glass)',
               }}
             >
-              <div className="preview-top">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span
-                    style={{
-                      backgroundColor: currentOp.hex,
-                      color: '#ffffff',
-                      fontWeight: 800,
-                      fontSize: '0.72rem',
-                      padding: '2px 8px',
-                      borderRadius: '6px',
-                    }}
-                  >
-                    {currentOp.shortCode}
-                  </span>
-                  <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-dark)' }}>
-                    Billet Voyageur Unitaire
-                  </span>
-                </div>
-                <span className="preview-badge" style={{ backgroundColor: 'var(--primary-light)', borderColor: currentOp.hex }}>
-                  Valide • Ligne B1
+              <div className="preview-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span
+                  className="preview-badge"
+                  style={{
+                    backgroundColor: 'var(--primary-light)',
+                    color: currentColor.hex,
+                    border: `1px solid ${currentColor.hex}`,
+                    padding: '3px 10px',
+                    borderRadius: '999px',
+                    fontWeight: 700,
+                    fontSize: '0.75rem',
+                  }}
+                >
+                  Titre actif • Nuance {currentColor.name}
                 </span>
+                <span
+                  style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    backgroundColor: currentColor.hex,
+                    boxShadow: `0 0 8px ${currentColor.hex}`,
+                  }}
+                />
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0.4rem 0' }}>
-                <div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>OPÉRATEUR RÉSEAU</div>
-                  <div style={{ fontWeight: 700, color: 'var(--text-dark)' }}>{currentOp.name}</div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>PRIX UNITAIRE</div>
-                  <div style={{ fontWeight: 800, color: currentOp.hex, fontSize: '1.05rem' }}>500 FCFA</div>
-                </div>
-              </div>
-
-              <div className="preview-actions" style={{ display: 'flex', gap: '0.6rem', marginTop: '0.2rem' }}>
+              <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.65rem' }}>
                 <button
                   type="button"
                   className="btn-primary preview-btn"
                   style={{
-                    backgroundColor: currentOp.hex,
-                    flex: 1,
-                    display: 'flex',
+                    backgroundColor: currentColor.hex,
+                    display: 'inline-flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    padding: '0.65rem',
+                    gap: '6px',
+                    padding: '0.6rem 1.1rem',
                   }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>qr_code_scanner</span>
-                  Valider à la borne
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check</span>
+                  Bouton Principal
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={{ padding: '0.6rem 1rem' }}
+                >
+                  Bouton Secondaire
                 </button>
               </div>
             </div>
@@ -293,14 +230,14 @@ function ThemeCustomizerModal() {
             onClick={resetCustomization}
           >
             <span className="material-symbols-outlined btn-icon">restart_alt</span>
-            Réseau par défaut (BRT)
+            Rétablir par défaut
           </button>
           <button
             type="button"
             className="btn-primary customizer-confirm-btn"
             onClick={closeCustomizer}
           >
-            Appliquer la charte
+            Fermer
           </button>
         </div>
       </div>
@@ -309,4 +246,5 @@ function ThemeCustomizerModal() {
 }
 
 export default ThemeCustomizerModal;
+
 

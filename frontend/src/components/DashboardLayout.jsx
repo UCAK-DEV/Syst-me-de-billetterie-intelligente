@@ -168,10 +168,10 @@ function DashboardLayout() {
             type="button"
             className="mobile-action-btn mobile-palette-btn"
             onClick={openCustomizer}
-            title="Charte Réseau & Ergonomie (WCAG 2.1)"
-            aria-label="Charte Réseau & Ergonomie"
+            title="Personnaliser les couleurs"
+            aria-label="Personnaliser les couleurs"
           >
-            <span className="material-symbols-outlined">tune</span>
+            <span className="material-symbols-outlined">palette</span>
           </button>
 
           <button
@@ -326,11 +326,11 @@ function DashboardLayout() {
             <button
               onClick={openCustomizer}
               className="sidebar-theme-btn"
-              title="Charte Réseau & Ergonomie (WCAG 2.1)"
-              aria-label="Charte Réseau & Ergonomie"
+              title="Personnaliser les couleurs"
+              aria-label="Personnaliser les couleurs"
             >
-              <span className="material-symbols-outlined">tune</span>
-              <span className="sidebar-link-text">Charte & Ergonomie</span>
+              <span className="material-symbols-outlined">palette</span>
+              <span className="sidebar-link-text">Personnaliser</span>
             </button>
 
             <button
