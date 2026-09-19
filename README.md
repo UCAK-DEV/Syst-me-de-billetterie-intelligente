@@ -277,6 +277,7 @@ Après initialisation de la base (`npm run seed:admin --prefix backend` ou via l
 ## Documentation
 
 - [CHECKLIST_DEPLOIEMENT.md](CHECKLIST_DEPLOIEMENT.md) — Grille de vérification post-déploiement et scénario métier (TP 2)
+- [GUIDE_SOUTENANCE_TP2.md](GUIDE_SOUTENANCE_TP2.md) — Guide complet de soutenance et antisèche jury (TP 2)
 - [PLAN-SERVICE-BILLETTERIE.md](PLAN-SERVICE-BILLETTERIE.md) — Contrat d'API, modèle PostgreSQL, concurrence, audit et règles du Service Billetterie
 - [PLAN-SERVICE-ABONNEMENTS.md](PLAN-SERVICE-ABONNEMENTS.md) — Contrat d'API et architecture du Service Abonnements
 - [docs/service-billetterie.md](docs/service-billetterie.md) — Livrable Service Billetterie : fonctionnalités critiques, plan de tests
