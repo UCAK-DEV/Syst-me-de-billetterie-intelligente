@@ -69,11 +69,10 @@ function ScanValidation() {
   const [historiqueSession, setHistoriqueSession] = useState(chargerHistoriqueStocke);
   const [soundEnabled, setSoundEnabled] = useState(true);
 
-  // La caméra est activée automatiquement par défaut
+  // La caméra est activée automatiquement par défaut en vue de front ('user')
   const [cameraOpen, setCameraOpen] = useState(true);
   const [cameraError, setCameraError] = useState(null);
-  const [availableCameras, setAvailableCameras] = useState([]);
-  const [currentCameraIdx, setCurrentCameraIdx] = useState(0);
+  const [facingMode, setFacingMode] = useState('user'); // Vue de front par défaut !
 
   // Tiroirs déportés
   const [manualModalOpen, setManualModalOpen] = useState(false);
@@ -160,14 +159,16 @@ function ScanValidation() {
     }
   };
 
-  // Réarmement immédiat pour le voyageur suivant
+  // Re-scanner un nouveau titre
   const handleNextScan = () => {
     setResultat(null);
+    setCode('');
     setStep('scanner');
+    setCameraError(null);
     setCameraOpen(true);
   };
 
-  // Traitement d'un cliché photo (Fallback tous navigateurs et HTTP)
+  // Photo directe
   const handlePhotoCapture = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -176,26 +177,34 @@ function ScanValidation() {
     setCameraError(null);
 
     try {
-      const dummyReader = new Html5Qrcode(QR_FILE_DUMMY_ID);
-      const decoded = await dummyReader.scanFile(file, false);
-      await dummyReader.clear();
-      handleScan(decoded);
+      const dummy = document.getElementById(QR_FILE_DUMMY_ID);
+      if (!dummy) throw new Error('Élément de décodage non prêt');
+
+      const fileScanner = new Html5Qrcode(QR_FILE_DUMMY_ID);
+      try {
+        const decoded = await fileScanner.scanFile(file, false);
+        await fileScanner.clear();
+        await handleScan(decoded);
+      } catch (scanErr) {
+        await fileScanner.clear().catch(() => {});
+        throw scanErr;
+      }
     } catch (err) {
-      console.warn('Scan image échoué :', err);
-      setCameraError("Impossible de lire de QR Code sur ce cliché. Veuillez cadrer de plus près et reprendre la photo.");
+      console.warn('Échec décodage photo :', err);
+      setCameraError(
+        'Aucun QR Code valide détecté sur cette photo. Essayez avec un angle plus net ou saisissez le code manuellement.'
+      );
     } finally {
       setLoading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
-  // Inverser la caméra (si plus d'une caméra disponible)
+  // Inverser la caméra (Avant / Arrière)
   const handleFlipCamera = () => {
-    if (availableCameras.length <= 1) return;
-    const nextIdx = (currentCameraIdx + 1) % availableCameras.length;
-    setCurrentCameraIdx(nextIdx);
+    setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'));
     setCameraOpen(false);
-    setTimeout(() => setCameraOpen(true), 200);
+    setTimeout(() => setCameraOpen(true), 120);
   };
 
   // Arrêt sécurisé du scanner évitant l'erreur 'Cannot stop, scanner is not running'
@@ -215,7 +224,7 @@ function ScanValidation() {
     }
   };
 
-  // Démarrage intelligent de la caméra (caméra arrière en priorité, puis webcam, avec repli automatique)
+  // Démarrage intelligent de la caméra (caméra frontale 'user' par défaut absolu, repli automatique)
   useEffect(() => {
     let cancelled = false;
 
@@ -262,14 +271,11 @@ function ScanValidation() {
       };
 
       try {
-        // 1. Découverte matérielle des caméras
+        // 1. Découverte matérielle des caméras (pour repli si nécessaire)
         let deviceList = [];
         try {
           if (navigator.mediaDevices && typeof navigator.mediaDevices.enumerateDevices === 'function') {
             deviceList = await Html5Qrcode.getCameras();
-            if (!cancelled && Array.isArray(deviceList)) {
-              setAvailableCameras(deviceList);
-            }
           }
         } catch {
           // Ignorer si l'énumération n'est pas permise
@@ -280,20 +286,15 @@ function ScanValidation() {
           return;
         }
 
-        // 2. Choix de la configuration (Caméra spécifique ou facingMode)
-        let configToTry = null;
-        if (deviceList.length > 0) {
-          const selected = deviceList[currentCameraIdx] || deviceList[0];
-          configToTry = selected.id;
-        } else {
-          configToTry = { facingMode: 'environment' };
-        }
+        // 2. Choix de la configuration : Priorité absolue à la contrainte native facingMode ('user' par défaut)
+        // L'API native du navigateur sélectionne directement la caméra frontale / selfie
+        const configToTry = { facingMode: facingMode };
 
-        // 3. Démarrage de la caméra avec fallback vers webcam avant si arrière absente
+        // 3. Démarrage de la caméra : SANS qrbox pour éliminer le rectangle ombré et les doubles cadres
         try {
           await instance.start(
             configToTry,
-            { fps: 12, qrbox: { width: 250, height: 250 } },
+            { fps: 15, aspectRatio: 1.0 },
             onScanSuccess,
             () => {}
           );
@@ -302,13 +303,32 @@ function ScanValidation() {
             await safeStopScanner(instance);
             return;
           }
-          console.warn('Essai caméra principale échoué, essai repli webcam/frontale :', firstErr);
-          await instance.start(
-            { facingMode: 'user' },
-            { fps: 12, qrbox: { width: 250, height: 250 } },
-            onScanSuccess,
-            () => {}
-          );
+          console.warn('Essai caméra frontale/arrière échoué, essai repli :', firstErr);
+          const fallbackFacing = facingMode === 'user' ? 'environment' : 'user';
+          try {
+            await instance.start(
+              { facingMode: fallbackFacing },
+              { fps: 15, aspectRatio: 1.0 },
+              onScanSuccess,
+              () => {}
+            );
+          } catch (secondErr) {
+            if (cancelled) {
+              await safeStopScanner(instance);
+              return;
+            }
+            console.warn('Essai repli facingMode échoué, essai device direct :', secondErr);
+            if (deviceList.length > 0 && deviceList[0]?.id) {
+              await instance.start(
+                deviceList[0].id,
+                { fps: 15, aspectRatio: 1.0 },
+                onScanSuccess,
+                () => {}
+              );
+            } else {
+              throw secondErr;
+            }
+          }
         }
       } catch (err) {
         if (cancelled) return;
@@ -340,7 +360,7 @@ function ScanValidation() {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, cameraOpen, currentCameraIdx, isSecure]);
+  }, [step, cameraOpen, facingMode, isSecure]);
 
   const totalSession = historiqueSession.length;
   const autorisesSession = historiqueSession.filter((h) => h.autorise).length;
@@ -366,25 +386,27 @@ function ScanValidation() {
         <div className="scan-steps-badge-row">
           <span className={`scan-step-badge${step === 'scanner' ? ' active' : ' completed'}`}>
             <span className="step-num">1</span>
-            <span className="step-text">Scanner le titre</span>
+            <span className="step-text">Scanner</span>
           </span>
           <span className="material-symbols-outlined step-separator">chevron_right</span>
           <span className={`scan-step-badge${step === 'result' ? ' active' : ''}`}>
             <span className="step-num">2</span>
-            <span className="step-text">Décision</span>
+            <span className="step-text">Résultat</span>
           </span>
         </div>
 
         {/* Commandes discrètes d'en-tête */}
         <div className="scan-quick-tools">
-          {availableCameras.length > 1 && step === 'scanner' && (
+          {step === 'scanner' && (
             <button
               type="button"
-              className="tool-pill-btn"
+              className={`tool-pill-btn camera-flip-pill${facingMode === 'user' ? ' active' : ''}`}
               onClick={handleFlipCamera}
-              title="Inverser la caméra (Avant/Arrière)"
+              title={facingMode === 'user' ? "Caméra frontale active (cliquer pour caméra arrière)" : "Caméra arrière active (cliquer pour caméra frontale)"}
+              aria-label="Inverser la caméra"
             >
               <span className="material-symbols-outlined">flip_camera_ios</span>
+              <span className="tool-pill-cam-label">{facingMode === 'user' ? 'Face' : 'Dos'}</span>
             </button>
           )}
 
@@ -419,7 +441,7 @@ function ScanValidation() {
           <div className="scan-prompt-header">
             <h1 className="scan-main-title">Contrôle des Titres</h1>
             <p className="scan-main-subtitle">
-              Cadrez le QR Code du voyageur dans les repères lumineux
+              Pointez la caméra vers le QR Code
             </p>
           </div>
 
@@ -498,12 +520,12 @@ function ScanValidation() {
             </div>
           )}
 
-          {/* Viseur caméra immersif haute précision */}
+          {/* Viseur caméra immersif épuré (un seul carré de cadrage net) */}
           <div className="scan-hero-viewfinder-wrapper">
             <div className="scanner-viewfinder-overlay">
               <div id={QR_READER_ID} className="qr-camera-view" style={{ width: '100%', height: '100%' }} />
 
-              {/* Repères et laser de scan */}
+              {/* Repères et laser de scan (l'unique carré propre) */}
               <div className="scanner-viewfinder-box">
                 <span className="scanner-bracket scanner-bracket-tl"></span>
                 <span className="scanner-bracket scanner-bracket-tr"></span>
@@ -511,17 +533,29 @@ function ScanValidation() {
                 <span className="scanner-bracket scanner-bracket-br"></span>
                 <div className="scanner-laser-line"></div>
               </div>
+            </div>
+          </div>
 
-              {/* Pilule d'état de scan */}
-              <div className="scanner-status-pill">
-                <span className="pulse-indicator"></span>
-                <span>{loading ? 'Validation en cours...' : 'Prêt · Présentez le QR Code'}</span>
-              </div>
+          {/* Pilule d'état de scan dégagée et centrée sous le viseur */}
+          <div className="scanner-status-pill-row">
+            <div className={`scanner-status-pill${loading ? ' loading' : ''}`}>
+              <span className="pulse-indicator"></span>
+              <span>{loading ? 'Vérification...' : 'Visez le QR Code'}</span>
             </div>
           </div>
 
           {/* Options secondaires de secours */}
           <div className="scan-secondary-options" style={{ flexDirection: 'column', gap: '0.6rem', alignItems: 'center' }}>
+            <button
+              type="button"
+              className="scan-manual-trigger-btn"
+              onClick={handleFlipCamera}
+              title="Inverser la caméra (Vue Avant / Vue Arrière)"
+            >
+              <span className="material-symbols-outlined">flip_camera_ios</span>
+              <span>Inverser la caméra ({facingMode === 'user' ? 'Vue Avant' : 'Vue Arrière'})</span>
+            </button>
+
             <button
               type="button"
               className="scan-manual-trigger-btn"
