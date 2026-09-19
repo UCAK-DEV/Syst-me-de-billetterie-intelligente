@@ -1,7 +1,7 @@
 // Client API du Service Billetterie — voir PLAN-SERVICE-BILLETTERIE.md §4 pour le contrat.
 // Branché sur le service billetterie (service-billetterie/, port 5070, PostgreSQL).
 
-const API_URL = import.meta.env.VITE_BILLETTERIE_API_URL || 'http://localhost:5070/api/billetterie';
+const API_URL = import.meta.env.VITE_BILLETTERIE_API_URL || '/api/billetterie';
 
 export class ApiBilletterieError extends Error {
   constructor(message, status) {

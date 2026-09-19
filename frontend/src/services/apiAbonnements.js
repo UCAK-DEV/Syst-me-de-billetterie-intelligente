@@ -10,7 +10,7 @@
 // (ERR_UNSAFE_PORT) quel que soit le serveur en face.
 export const USING_SIMULATION = false;
 
-const API_URL = import.meta.env.VITE_ABONNEMENTS_API_URL || 'http://localhost:5065/api/abonnements';
+const API_URL = import.meta.env.VITE_ABONNEMENTS_API_URL || '/api/abonnements';
 
 export class ApiAbonnementsError extends Error {
   constructor(message, status) {

@@ -4,13 +4,48 @@ services:
     container_name: billetterie-mongo
     restart: unless-stopped
     command: ["mongod", "--wiredTigerCacheSizeGB", "0.25"]
-    mem_limit: 384m
+    mem_limit: 256m
     deploy:
       resources:
         limits:
-          memory: 384M
+          memory: 256M
     volumes:
       - mongo_data:/data/db
+    networks:
+      - billetterie-net
+
+  mariadb:
+    image: mariadb:10.11-alpine
+    container_name: billetterie-mariadb
+    restart: unless-stopped
+    mem_limit: 128m
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: billetterie_abonnements
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - billetterie-net
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: billetterie-postgres
+    restart: unless-stopped
+    mem_limit: 128m
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    environment:
+      POSTGRES_DB: billetterie_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - billetterie-net
 
@@ -25,8 +60,6 @@ services:
       resources:
         limits:
           memory: 128M
-    ports:
-      - "8000:8000"
     environment:
       PORT: 8000
       MONGO_URI: mongodb://mongo:27017/billetterie
@@ -39,12 +72,64 @@ services:
     networks:
       - billetterie-net
 
+  abonnements:
+    build:
+      context: ./service-abonnements
+      dockerfile: Dockerfile
+    container_name: billetterie-abonnements
+    restart: unless-stopped
+    mem_limit: 96m
+    deploy:
+      resources:
+        limits:
+          memory: 96M
+    environment:
+      PORT: 5065
+      NODE_ENV: production
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_NAME: billetterie_abonnements
+      DB_USER: root
+      DB_PASSWORD: root
+      JWT_SECRET: ${JWT_SECRET:-vps_secret_production_key_2026}
+    depends_on:
+      - mariadb
+    networks:
+      - billetterie-net
+
+  billetterie:
+    build:
+      context: ./service-billetterie
+      dockerfile: Dockerfile
+    container_name: billetterie-billetterie
+    restart: unless-stopped
+    mem_limit: 96m
+    deploy:
+      resources:
+        limits:
+          memory: 96M
+    environment:
+      PORT: 5070
+      NODE_ENV: production
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: billetterie_db
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      JWT_SECRET: ${JWT_SECRET:-vps_secret_production_key_2026}
+      SERVICE_UTILISATEURS_URL: http://backend:8000
+      SERVICE_ABONNEMENTS_URL: http://abonnements:5065
+    depends_on:
+      - postgres
+      - backend
+      - abonnements
+    networks:
+      - billetterie-net
+
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args:
-        VITE_API_URL: ${VITE_API_URL:-/api}
     container_name: billetterie-frontend
     restart: unless-stopped
     mem_limit: 32m
@@ -56,11 +141,15 @@ services:
       - "${FRONTEND_PORT:-8080}:80"
     depends_on:
       - backend
+      - abonnements
+      - billetterie
     networks:
       - billetterie-net
 
 volumes:
   mongo_data:
+  mariadb_data:
+  postgres_data:
 
 networks:
   billetterie-net:
