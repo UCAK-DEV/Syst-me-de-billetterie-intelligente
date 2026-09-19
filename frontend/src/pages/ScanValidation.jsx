@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { scannerValidation } from '../services/apiBilletterie';
 import { motifLabel, motifColors } from '../utils/motifsRefus';
+import { formatDateFR } from '../utils/dates';
 
 const QR_READER_ID = 'qr-reader-camera';
 const HISTORIQUE_STORAGE_KEY = 'scanHistoriqueSession';
@@ -16,7 +17,7 @@ const chargerHistoriqueStocke = () => {
   }
 };
 
-// Bips sonores synthétisés natifs sans fichiers externes
+// Bips sonores synthétisés natifs
 function playAudioFeedback(isSuccess) {
   try {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -28,8 +29,8 @@ function playAudioFeedback(isSuccess) {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(587.33, ctx.currentTime); // Ré5
-      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1); // La5
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1);
       gain.gain.setValueAtTime(0.15, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
       osc.connect(gain);
@@ -41,8 +42,8 @@ function playAudioFeedback(isSuccess) {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(220, ctx.currentTime); // La3
-      osc.frequency.setValueAtTime(164.81, ctx.currentTime + 0.15); // Mi3
+      osc.frequency.setValueAtTime(220, ctx.currentTime);
+      osc.frequency.setValueAtTime(164.81, ctx.currentTime + 0.15);
       gain.gain.setValueAtTime(0.2, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
       osc.connect(gain);
@@ -51,35 +52,37 @@ function playAudioFeedback(isSuccess) {
       osc.stop(ctx.currentTime + 0.4);
     }
   } catch {
-    // Si l'audio est restreint par le navigateur, continuer sans son
+    // Continuer sans son si restreint
   }
 }
 
 function ScanValidation() {
+  // Navigation en 2 étapes style Onboarding / Wizard : 'scanner' ou 'result'
+  const [step, setStep] = useState('scanner');
+
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [resultat, setResultat] = useState(null);
   const [historiqueSession, setHistoriqueSession] = useState(chargerHistoriqueStocke);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [cameraOpen, setCameraOpen] = useState(false);
+
+  // La caméra est activée automatiquement par défaut en Étape 1
+  const [cameraOpen, setCameraOpen] = useState(true);
   const [cameraError, setCameraError] = useState(null);
 
-  const inputRef = useRef(null);
+  // Tiroirs déportés pour ne pas surcharger l'écran principal
+  const [manualModalOpen, setManualModalOpen] = useState(false);
+  const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
+
   const html5QrRef = useRef(null);
   const scanningRef = useRef(false);
 
-  // Maintenir le focus sur l'input pour la douchette de scan
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, [resultat]);
-
-  // Persiste l'historique de session : un rafraîchissement de page ne doit
-  // pas faire disparaître les contrôles déjà effectués.
+  // Persistance de l'historique de session
   useEffect(() => {
     try {
       localStorage.setItem(HISTORIQUE_STORAGE_KEY, JSON.stringify(historiqueSession));
     } catch {
-      // Stockage indisponible (navigation privée, quota) : tant pis, pas bloquant.
+      // Ignorer
     }
   }, [historiqueSession]);
 
@@ -88,7 +91,6 @@ function ScanValidation() {
     if (!raw) return;
 
     setLoading(true);
-    setResultat(null);
 
     try {
       const res = await scannerValidation(raw);
@@ -117,8 +119,12 @@ function ScanValidation() {
           message: res.message,
           heure: res.validation?.heureValidation || new Date().toLocaleTimeString(),
         },
-        ...prev.slice(0, 9),
+        ...prev.slice(0, 19),
       ]);
+
+      // Bascule automatique vers l'Étape 2 (Résultat Plein Format)
+      setStep('result');
+      setManualModalOpen(false);
     } catch (err) {
       const echec = {
         autorise: false,
@@ -127,6 +133,7 @@ function ScanValidation() {
       };
       setResultat(echec);
       if (soundEnabled) playAudioFeedback(false);
+
       setHistoriqueSession((prev) => [
         {
           id: `VAL-${Date.now()}`,
@@ -136,288 +143,445 @@ function ScanValidation() {
           message: echec.message,
           heure: new Date().toLocaleTimeString(),
         },
-        ...prev.slice(0, 9),
+        ...prev.slice(0, 19),
       ]);
+
+      setStep('result');
+      setManualModalOpen(false);
     } finally {
       setLoading(false);
       setCode('');
     }
   };
 
-  // Démarre/arrête la caméra selon cameraOpen. La lecture continue tant que
-  // la caméra est ouverte, avec un verrou (scanningRef) pour ne pas lancer
-  // deux validations pour le même QR Code détecté sur plusieurs frames.
+  // Réarmement immédiat pour le voyageur suivant
+  const handleNextScan = () => {
+    setResultat(null);
+    setStep('scanner');
+    setCameraOpen(true);
+  };
+
+  // Démarrage et arrêt automatique de la caméra en fonction de l'étape
   useEffect(() => {
-    if (!cameraOpen) return undefined;
+    if (step !== 'scanner' || !cameraOpen) {
+      if (html5QrRef.current) {
+        html5QrRef.current
+          .stop()
+          .then(() => html5QrRef.current?.clear())
+          .catch(() => {});
+        html5QrRef.current = null;
+      }
+      return undefined;
+    }
 
     setCameraError(null);
-    const instance = new Html5Qrcode(QR_READER_ID);
-    html5QrRef.current = instance;
     let cancelled = false;
 
-    instance
-      .start(
-        { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 240, height: 240 } },
-        (decodedText) => {
-          if (scanningRef.current) return;
-          scanningRef.current = true;
-          handleScan(decodedText).finally(() => {
-            setTimeout(() => { scanningRef.current = false; }, 1500);
-          });
-        },
-        () => {} // erreurs de décodage frame par frame : silencieuses, normales
-      )
-      .catch((err) => {
-        if (cancelled) return;
-        setCameraError(
-          "Impossible d'accéder à la caméra. Vérifiez l'autorisation du navigateur ou utilisez la saisie manuelle."
-        );
-        setCameraOpen(false);
-        console.error(err);
-      });
+    // Attente du montage du DOM pour le lecteur
+    const timer = setTimeout(() => {
+      const el = document.getElementById(QR_READER_ID);
+      if (!el || cancelled) return;
+
+      const instance = new Html5Qrcode(QR_READER_ID);
+      html5QrRef.current = instance;
+
+      instance
+        .start(
+          { facingMode: 'environment' },
+          { fps: 12, qrbox: { width: 250, height: 250 } },
+          (decodedText) => {
+            if (scanningRef.current) return;
+            scanningRef.current = true;
+            handleScan(decodedText).finally(() => {
+              setTimeout(() => { scanningRef.current = false; }, 1200);
+            });
+          },
+          () => {} // Ignorer les frames intermédiaires
+        )
+        .catch((err) => {
+          if (cancelled) return;
+          console.warn('Caméra indisponible :', err);
+          setCameraError("Caméra indisponible ou permission refusée. Vous pouvez utiliser la saisie manuelle.");
+          setCameraOpen(false);
+        });
+    }, 150);
 
     return () => {
       cancelled = true;
-      instance
-        .stop()
-        .then(() => instance.clear())
-        .catch(() => {});
-      html5QrRef.current = null;
+      clearTimeout(timer);
+      if (html5QrRef.current) {
+        html5QrRef.current
+          .stop()
+          .then(() => html5QrRef.current?.clear())
+          .catch(() => {});
+        html5QrRef.current = null;
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cameraOpen]);
+  }, [step, cameraOpen]);
 
   const totalSession = historiqueSession.length;
   const autorisesSession = historiqueSession.filter((h) => h.autorise).length;
   const refusesSession = historiqueSession.filter((h) => !h.autorise).length;
 
   return (
-    <main className="main-content scan-page">
-      <section className="page-header">
-        <div>
-          <h1 className="page-title">Scan et contrôle</h1>
-          <p className="page-subtitle">
-            Lecture des QR Codes et vérification de la validité des titres de transport
-          </p>
+    <main className="main-content scan-onboarding-container">
+      {/* Barre d'étape style Onboarding */}
+      <div className="scan-wizard-header">
+        <div className="scan-steps-badge-row">
+          <span className={`scan-step-badge${step === 'scanner' ? ' active' : ' completed'}`}>
+            <span className="step-num">1</span>
+            <span className="step-text">Scanner le titre</span>
+          </span>
+          <span className="material-symbols-outlined step-separator">chevron_right</span>
+          <span className={`scan-step-badge${step === 'result' ? ' active' : ''}`}>
+            <span className="step-num">2</span>
+            <span className="step-text">Décision</span>
+          </span>
         </div>
 
-        <div className="action-button-group">
+        {/* Commandes discrètes d'en-tête */}
+        <div className="scan-quick-tools">
           <button
             type="button"
-            onClick={() => setCameraOpen((v) => !v)}
-            className={cameraOpen ? 'btn-primary' : 'btn-secondary'}
-            title={cameraOpen ? 'Fermer la caméra' : 'Scanner avec la caméra'}
-          >
-            <span className="material-symbols-outlined btn-icon">
-              {cameraOpen ? 'photo_camera' : 'camera_alt'}
-            </span>
-            {cameraOpen ? 'Fermer la caméra' : 'Scanner avec la caméra'}
-          </button>
-
-          <button
-            type="button"
+            className={`tool-pill-btn${soundEnabled ? ' active' : ''}`}
             onClick={() => setSoundEnabled(!soundEnabled)}
-            className="btn-secondary"
             title={soundEnabled ? 'Désactiver les signaux sonores' : 'Activer les signaux sonores'}
           >
-            <span className="material-symbols-outlined btn-icon">
+            <span className="material-symbols-outlined">
               {soundEnabled ? 'volume_up' : 'volume_off'}
             </span>
-            {soundEnabled ? 'Son activé' : 'Son muet'}
+          </button>
+
+          <button
+            type="button"
+            className="tool-pill-btn session-badge-btn"
+            onClick={() => setHistoryDrawerOpen(true)}
+            title="Consulter les statistiques de la session"
+          >
+            <span className="material-symbols-outlined">bar_chart</span>
+            <span className="session-count-text">{totalSession} scans</span>
           </button>
         </div>
-      </section>
+      </div>
 
-      {cameraError && (
-        <div className="offline-notice">
-          <span className="material-symbols-outlined offline-icon">videocam_off</span>
-          <div>
-            <div className="offline-title">Caméra indisponible</div>
-            <div className="offline-text">{cameraError}</div>
+      {/* =========================================================================
+          ÉTAPE 1 : LE SCANNER CAMÉRA PLEIN FORMAT (PRIORITAIRE & SANS DISTRACTION)
+          ========================================================================= */}
+      {step === 'scanner' && (
+        <section className="scan-step-view scan-step-camera">
+          <div className="scan-prompt-header">
+            <h1 className="scan-main-title">Contrôle des Titres</h1>
+            <p className="scan-main-subtitle">
+              Cadrez le QR Code du voyageur dans les repères lumineux
+            </p>
           </div>
-        </div>
-      )}
 
-      {cameraOpen && (
-        <section className="stats-card scan-camera-box" style={{ overflow: 'hidden', padding: '1rem', textAlign: 'center' }}>
-          <div className="scanner-viewfinder-overlay">
-            <div id={QR_READER_ID} className="qr-camera-view" style={{ width: '100%', height: '100%' }} />
-            <div className="scanner-viewfinder-box">
-              <span className="scanner-bracket scanner-bracket-tl"></span>
-              <span className="scanner-bracket scanner-bracket-tr"></span>
-              <span className="scanner-bracket scanner-bracket-bl"></span>
-              <span className="scanner-bracket scanner-bracket-br"></span>
-              <div className="scanner-laser-line"></div>
+          {cameraError && (
+            <div className="offline-notice" style={{ maxWidth: '420px', margin: '0 auto 1rem' }}>
+              <span className="material-symbols-outlined offline-icon">videocam_off</span>
+              <div>
+                <div className="offline-title">Accès caméra restreint</div>
+                <div className="offline-text">{cameraError}</div>
+              </div>
             </div>
-            <div className="scanner-status-pill">
-              <span className="pulse-indicator"></span>
-              <span>{loading ? 'Analyse du QR Code...' : 'Viseur actif · Scanner en cours'}</span>
+          )}
+
+          {/* Viseur caméra immersif haute précision */}
+          <div className="scan-hero-viewfinder-wrapper">
+            <div className="scanner-viewfinder-overlay">
+              <div id={QR_READER_ID} className="qr-camera-view" style={{ width: '100%', height: '100%' }} />
+
+              {/* Repères et laser de scan */}
+              <div className="scanner-viewfinder-box">
+                <span className="scanner-bracket scanner-bracket-tl"></span>
+                <span className="scanner-bracket scanner-bracket-tr"></span>
+                <span className="scanner-bracket scanner-bracket-bl"></span>
+                <span className="scanner-bracket scanner-bracket-br"></span>
+                <div className="scanner-laser-line"></div>
+              </div>
+
+              {/* Pilule d'état de scan */}
+              <div className="scanner-status-pill">
+                <span className="pulse-indicator"></span>
+                <span>{loading ? 'Validation en cours...' : 'Prêt · Présentez le QR Code'}</span>
+              </div>
             </div>
           </div>
-          <p className="scan-hint" style={{ marginTop: '0.85rem' }}>
-            Cadrez le QR Code dans les repères lumineux. La détection et le bip sonore sont instantanés.
-          </p>
+
+          {/* Option de saisie manuelle en bas (Secondaire / Déportée) */}
+          <div className="scan-secondary-options">
+            <button
+              type="button"
+              className="scan-manual-trigger-btn"
+              onClick={() => setManualModalOpen(true)}
+            >
+              <span className="material-symbols-outlined">keyboard</span>
+              <span>Caméra indisponible ? Saisie manuelle</span>
+            </button>
+          </div>
         </section>
       )}
 
-      <section className="scan-stats-row">
-        <div className="stats-card scan-stat">
-          <span className="metric-label">Scans (session)</span>
-          <span className="metric-value">{totalSession}</span>
-        </div>
-        <div className="stats-card scan-stat">
-          <span className="metric-label">Autorisés</span>
-          <span className="metric-value status-actif">{autorisesSession}</span>
-        </div>
-        <div className="stats-card scan-stat">
-          <span className="metric-label">Refusés</span>
-          <span className="metric-value status-supprime">{refusesSession}</span>
-        </div>
-      </section>
+      {/* =========================================================================
+          ÉTAPE 2 : L'ÉCRAN DE DÉCISION PLEIN FORMAT (INSTANTANÉ, ULTRA-LISIBLE)
+          ========================================================================= */}
+      {step === 'result' && resultat && (
+        <section className="scan-step-view scan-step-decision">
+          <div className={`scan-decision-card ${resultat.autorise ? 'autorise' : 'refuse'}`}>
+            {/* Grand Icône Décisionnelle Animée */}
+            <div className={`decision-icon-circle ${resultat.autorise ? 'autorise' : 'refuse'}`}>
+              <span className="material-symbols-outlined">
+                {resultat.autorise ? 'check_circle' : 'cancel'}
+              </span>
+            </div>
 
-      <section className="stats-card scan-box">
-        <form
-          className="scan-form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleScan();
-          }}
-        >
-          <div className="form-group">
-            <label htmlFor="qr-input" className="form-label">
-              Scannez le QR Code ou saisissez le code du titre
-            </label>
-            <div className="scan-input-row">
-              <input
-                id="qr-input"
-                ref={inputRef}
-                type="text"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                placeholder="Ex: TKT-a94f83bc..."
-                className="form-input scan-code-input"
-                autoComplete="off"
-              />
-              <button type="submit" className="btn-primary" disabled={loading || !code.trim()}>
-                {loading ? 'Vérification...' : 'Valider'}
+            {/* Titre Principal percutant */}
+            <h1 className="decision-title">
+              {resultat.autorise ? 'VOYAGE AUTORISÉ' : 'VOYAGE REFUSÉ'}
+            </h1>
+
+            {/* Motif du refus mis en exergue */}
+            {!resultat.autorise && resultat.motifRefus && (
+              <div className="decision-reason-box" style={motifColors(resultat.motifRefus)}>
+                <span className="material-symbols-outlined reason-icon">error_outline</span>
+                <span className="reason-text">{motifLabel(resultat.motifRefus)}</span>
+              </div>
+            )}
+
+            <p className="decision-message">
+              {resultat.message || (resultat.autorise ? 'Titre valide et contrôlé avec succès' : 'Validation non accordée')}
+            </p>
+
+            {/* Fiche récapitulative compacte */}
+            <div className="decision-meta-card">
+              {resultat.titre?.typeTitre && (
+                <div className="meta-row">
+                  <span className="meta-label">Formule :</span>
+                  <span className="meta-val">{resultat.titre.typeTitre.replace('_', ' ')}</span>
+                </div>
+              )}
+              {resultat.abonnement?.voyagesRestants !== undefined && (
+                <div className="meta-row">
+                  <span className="meta-label">Voyages restants :</span>
+                  <span className="meta-val highlight-val">{resultat.abonnement.voyagesRestants}</span>
+                </div>
+              )}
+              {resultat.abonnement?.dateExpiration && (
+                <div className="meta-row">
+                  <span className="meta-label">Expiration :</span>
+                  <span className="meta-val">{formatDateFR(resultat.abonnement.dateExpiration)}</span>
+                </div>
+              )}
+              {resultat.validation?.id && (
+                <div className="meta-row">
+                  <span className="meta-label">ID Contrôle :</span>
+                  <span className="meta-val monospace">{resultat.validation.id.substring(0, 10)}...</span>
+                </div>
+              )}
+            </div>
+
+            {/* Bouton d'action géant pour enchaîner les voyageurs */}
+            <div className="decision-actions-row">
+              <button
+                type="button"
+                className="scan-next-action-btn"
+                onClick={handleNextScan}
+                autoFocus
+              >
+                <span className="material-symbols-outlined">qr_code_scanner</span>
+                <span>Scanner le voyageur suivant</span>
+              </button>
+
+              <button
+                type="button"
+                className="btn-secondary decision-back-btn"
+                onClick={() => setHistoryDrawerOpen(true)}
+              >
+                <span className="material-symbols-outlined">history</span>
+                <span>Historique de session</span>
               </button>
             </div>
           </div>
-        </form>
-      </section>
-
-      {resultat && (
-        <section className={`scan-result ${resultat.autorise ? 'autorise' : 'refuse'}`}>
-          <span className="material-symbols-outlined scan-result-icon">
-            {resultat.autorise ? 'check_circle' : 'cancel'}
-          </span>
-
-          <h2 className="scan-result-title">{resultat.autorise ? 'Voyage autorisé' : 'Voyage refusé'}</h2>
-
-          <p className="scan-result-message">
-            {resultat.message || (resultat.autorise ? 'Titre valide' : 'Validation non permise')}
-          </p>
-
-          {(resultat.titre?.typeTitre || resultat.abonnement?.voyagesRestants !== undefined || resultat.validation?.id) && (
-            <div className="scan-result-details">
-              {resultat.titre?.typeTitre && (
-                <span>Type : <strong>{resultat.titre.typeTitre.replace('_', ' ')}</strong></span>
-              )}
-              {resultat.abonnement?.voyagesRestants !== undefined && (
-                <span>Voyages restants : <strong>{resultat.abonnement.voyagesRestants}</strong></span>
-              )}
-              {resultat.validation?.id && (
-                <span>Contrôle : <code>{resultat.validation.id}</code></span>
-              )}
-            </div>
-          )}
         </section>
       )}
 
-      {historiqueSession.length > 0 && (
-        <section className="table-card">
-          <div className="stats-card-header" style={{ justifyContent: 'space-between' }}>
-            <h3 className="stats-card-title">Derniers contrôles de la session</h3>
-            <button type="button" className="btn-secondary" onClick={() => setHistoriqueSession([])}>
-              <span className="material-symbols-outlined btn-icon">restart_alt</span>
-              Réinitialiser
-            </button>
-          </div>
-          {/* Liste Mobile de l'historique de scan (<= 640px) */}
-          <div className="scan-history-mobile-list">
-            {historiqueSession.map((item, idx) => (
-              <div key={idx} className={`scan-history-card ${item.autorise ? 'autorise' : 'refuse'}`}>
-                <div className="scan-history-card-top">
-                  <span
-                    className="role-badge"
-                    style={{
-                      backgroundColor: item.autorise ? '#dcfce7' : '#fee2e2',
-                      color: item.autorise ? '#15803d' : '#b91c1c',
-                    }}
-                  >
-                    {item.autorise ? 'Autorisé' : 'Refusé'}
-                  </span>
-                  <span className="scan-history-card-time">{item.heure}</span>
-                </div>
-                <div className="scan-history-card-code">
-                  <code>{item.code}</code>
-                </div>
-                <div className="scan-history-card-detail">
-                  {item.motifRefus ? (
-                    <span className="role-badge" style={motifColors(item.motifRefus)}>
-                      {motifLabel(item.motifRefus)}
-                    </span>
-                  ) : (
-                    <span>{item.message || 'Validation réussie'}</span>
-                  )}
+      {/* =========================================================================
+          TIROIR DÉROULANT : SAISIE MANUELLE AU CLAVIER (FALLBACK DE SECOURS)
+          ========================================================================= */}
+      {manualModalOpen && (
+        <div className="customizer-backdrop" onClick={() => setManualModalOpen(false)}>
+          <div className="customizer-panel" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '440px' }}>
+            <div className="customizer-header">
+              <div className="customizer-title-row">
+                <span className="material-symbols-outlined customizer-icon">keyboard</span>
+                <div>
+                  <h3 className="customizer-title">Saisie manuelle du code</h3>
+                  <p className="customizer-subtitle">En cas de QR Code détérioré ou de caméra indisponible</p>
                 </div>
               </div>
-            ))}
-          </div>
+              <button
+                type="button"
+                className="customizer-close-btn"
+                onClick={() => setManualModalOpen(false)}
+                aria-label="Fermer"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
 
-          {/* Table Desktop de l'historique (> 640px) */}
-          <div className="table-responsive scan-history-desktop-table">
-            <table className="user-table">
-              <thead>
-                <tr className="table-header-row">
-                  <th className="table-header-th">Heure</th>
-                  <th className="table-header-th">Résultat</th>
-                  <th className="table-header-th">Code scanné</th>
-                  <th className="table-header-th">Motif / Détail</th>
-                </tr>
-              </thead>
-              <tbody>
-                {historiqueSession.map((item, idx) => (
-                  <tr key={idx} className="table-row">
-                    <td className="table-td">{item.heure}</td>
-                    <td className="table-td">
-                      <span
-                        className="role-badge"
-                        style={{
-                          backgroundColor: item.autorise ? '#dcfce7' : '#fee2e2',
-                          color: item.autorise ? '#15803d' : '#b91c1c',
-                        }}
-                      >
-                        {item.autorise ? 'Autorisé' : 'Refusé'}
-                      </span>
-                    </td>
-                    <td className="table-td-id">{item.code}</td>
-                    <td className="table-td">
-                      {item.motifRefus ? (
-                        <span className="role-badge" style={motifColors(item.motifRefus)}>
-                          {motifLabel(item.motifRefus)}
-                        </span>
-                      ) : (
-                        item.message || '—'
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleScan();
+              }}
+              style={{ padding: '1.5rem' }}
+            >
+              <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+                <label className="form-label" htmlFor="manual-code-input">
+                  Code unique du titre
+                </label>
+                <input
+                  id="manual-code-input"
+                  type="text"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="Ex: TKT-a94f83bc..."
+                  className="form-input"
+                  style={{ fontSize: '1rem', padding: '0.85rem' }}
+                  autoFocus
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setManualModalOpen(false)}
+                  style={{ flex: 1 }}
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={loading || !code.trim()}
+                  style={{ flex: 2 }}
+                >
+                  {loading ? 'Vérification...' : 'Valider le titre'}
+                </button>
+              </div>
+            </form>
           </div>
-        </section>
+        </div>
+      )}
+
+      {/* =========================================================================
+          TIROIR LATÉRAL : HISTORIQUE & STATISTIQUES DE SESSION
+          ========================================================================= */}
+      {historyDrawerOpen && (
+        <div className="customizer-backdrop" onClick={() => setHistoryDrawerOpen(false)}>
+          <div className="customizer-panel" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+            <div className="customizer-header">
+              <div className="customizer-title-row">
+                <span className="material-symbols-outlined customizer-icon">bar_chart</span>
+                <div>
+                  <h3 className="customizer-title">Session de contrôle</h3>
+                  <p className="customizer-subtitle">Bilan des scans effectués depuis cette borne</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="customizer-close-btn"
+                onClick={() => setHistoryDrawerOpen(false)}
+                aria-label="Fermer"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div className="customizer-body">
+              {/* Mini-statistiques */}
+              <div className="scan-stats-row" style={{ marginTop: 0 }}>
+                <div className="stats-card scan-stat">
+                  <span className="metric-label">Total</span>
+                  <span className="metric-value">{totalSession}</span>
+                </div>
+                <div className="stats-card scan-stat">
+                  <span className="metric-label">Autorisés</span>
+                  <span className="metric-value status-actif">{autorisesSession}</span>
+                </div>
+                <div className="stats-card scan-stat">
+                  <span className="metric-label">Refusés</span>
+                  <span className="metric-value status-supprime">{refusesSession}</span>
+                </div>
+              </div>
+
+              {/* Liste des derniers scans */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span className="customizer-label">Derniers passages</span>
+                  {historiqueSession.length > 0 && (
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => setHistoriqueSession([])}
+                      style={{ fontSize: '0.72rem', padding: '0.25rem 0.5rem' }}
+                    >
+                      Effacer
+                    </button>
+                  )}
+                </div>
+
+                {historiqueSession.length === 0 ? (
+                  <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '1.5rem 0', fontSize: '0.85rem' }}>
+                    Aucun contrôle enregistré dans cette session.
+                  </p>
+                ) : (
+                  historiqueSession.map((item, idx) => (
+                    <div key={idx} className="history-card-item" style={{ padding: '0.75rem 0.9rem' }}>
+                      <div className="history-card-left">
+                        <div className={`history-card-icon-box ${item.autorise ? 'autorise' : 'refuse'}`} style={{ width: '36px', height: '36px', minWidth: '36px', borderRadius: '10px' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                            {item.autorise ? 'check' : 'close'}
+                          </span>
+                        </div>
+                        <div className="history-card-details">
+                          <span className="history-card-title" style={{ fontSize: '0.82rem' }}>{item.code}</span>
+                          <span className="history-card-meta">{item.heure}</span>
+                        </div>
+                      </div>
+                      <div className="history-card-right">
+                        <span
+                          className="role-badge"
+                          style={{
+                            fontSize: '0.7rem',
+                            backgroundColor: item.autorise ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                            color: item.autorise ? '#10b981' : '#ef4444',
+                          }}
+                        >
+                          {item.autorise ? 'Autorisé' : 'Refusé'}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="customizer-footer">
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => setHistoryDrawerOpen(false)}
+                style={{ width: '100%' }}
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </main>
   );

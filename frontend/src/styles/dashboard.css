@@ -4689,3 +4689,383 @@ body {
   font-size: 0.85rem;
   font-weight: 600;
 }
+
+/* ==========================================================================
+   PARCOURS DE SCAN ONBOARDING ÉTAPE PAR ÉTAPE (ZERO CLUTTER)
+   ========================================================================== */
+
+.scan-onboarding-container {
+  max-width: 560px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1rem 1rem 6rem;
+}
+
+/* Barre de progression d'étape */
+.scan-wizard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.25rem;
+}
+
+.scan-steps-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.scan-step-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 650;
+  background-color: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  border: 1px solid var(--border-glass);
+  transition: all 0.2s ease;
+}
+
+.scan-step-badge.active {
+  background-color: var(--primary-light);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  box-shadow: 0 2px 10px var(--primary-glow-subtle);
+}
+
+.scan-step-badge.completed {
+  background-color: rgba(16, 185, 129, 0.12);
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.scan-step-badge .step-num {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: currentColor;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.scan-step-badge.active .step-num {
+  color: #ffffff;
+}
+
+.step-separator {
+  font-size: 16px;
+  color: var(--text-muted);
+}
+
+.scan-quick-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tool-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-glass);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+
+.tool-pill-btn:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-dark);
+}
+
+.tool-pill-btn.active {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.session-badge-btn {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.session-count-text {
+  font-size: 0.75rem;
+}
+
+/* Étape 1 : Viseur Caméra */
+.scan-step-view {
+  animation: fadeInStep 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+@keyframes fadeInStep {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.scan-prompt-header {
+  text-align: center;
+  padding: 0.25rem 0;
+}
+
+.scan-main-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.scan-main-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0.35rem 0 0;
+}
+
+.scan-hero-viewfinder-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.scan-secondary-options {
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem 0;
+}
+
+.scan-manual-trigger-btn {
+  background: transparent;
+  border: 1px solid var(--border-glass);
+  color: var(--text-muted);
+  border-radius: 9999px;
+  padding: 0.6rem 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.scan-manual-trigger-btn:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: var(--text-dark);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Étape 2 : Décision Plein Format */
+.scan-decision-card {
+  background-color: var(--card-bg);
+  border: 1.5px solid var(--border-glass);
+  border-radius: var(--radius-card, 24px);
+  padding: 2.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  animation: popDecision 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes popDecision {
+  0% { transform: scale(0.92); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.scan-decision-card.autorise {
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: 0 16px 40px rgba(16, 185, 129, 0.18);
+}
+
+.scan-decision-card.refuse {
+  border-color: rgba(239, 68, 68, 0.4);
+  box-shadow: 0 16px 40px rgba(239, 68, 68, 0.18);
+}
+
+.decision-icon-circle {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.15rem;
+}
+
+.decision-icon-circle.autorise {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  box-shadow: 0 0 32px rgba(16, 185, 129, 0.5);
+  animation: pulseSuccess 1.8s infinite;
+}
+
+.decision-icon-circle.refuse {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  color: #ffffff;
+  box-shadow: 0 0 32px rgba(239, 68, 68, 0.5);
+  animation: pulseError 1.8s infinite;
+}
+
+@keyframes pulseSuccess {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 32px rgba(16, 185, 129, 0.5); }
+  50% { transform: scale(1.05); box-shadow: 0 0 44px rgba(16, 185, 129, 0.7); }
+}
+
+@keyframes pulseError {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 32px rgba(239, 68, 68, 0.5); }
+  50% { transform: scale(1.05); box-shadow: 0 0 44px rgba(239, 68, 68, 0.7); }
+}
+
+.decision-icon-circle .material-symbols-outlined {
+  font-size: 52px;
+}
+
+.decision-title {
+  font-size: 1.6rem;
+  font-weight: 850;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--text-dark);
+}
+
+.scan-decision-card.autorise .decision-title {
+  color: #10b981;
+}
+
+.scan-decision-card.refuse .decision-title {
+  color: #ef4444;
+}
+
+.decision-reason-box {
+  margin-top: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background-color: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #ef4444;
+}
+
+.decision-reason-box .reason-icon {
+  font-size: 20px;
+}
+
+.decision-message {
+  margin: 0.75rem 0 1.25rem;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  max-width: 380px;
+  line-height: 1.45;
+}
+
+.decision-meta-card {
+  width: 100%;
+  max-width: 380px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-glass);
+  border-radius: 16px;
+  padding: 0.85rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.75rem;
+}
+
+.decision-meta-card .meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.82rem;
+}
+
+.decision-meta-card .meta-label {
+  color: var(--text-muted);
+}
+
+.decision-meta-card .meta-val {
+  color: var(--text-dark);
+  font-weight: 700;
+}
+
+.decision-meta-card .meta-val.highlight-val {
+  color: var(--primary-color);
+  font-size: 0.95rem;
+}
+
+.decision-meta-card .meta-val.monospace {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.78rem;
+}
+
+.decision-actions-row {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Bouton géant d'enchaînement */
+.scan-next-action-btn {
+  width: 100%;
+  padding: 1.1rem 1.5rem;
+  border-radius: var(--radius-btn, 16px);
+  background: var(--primary-color);
+  box-shadow: 0 8px 24px var(--primary-glow);
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 750;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease;
+}
+
+.scan-next-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px var(--primary-glow);
+}
+
+.scan-next-action-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.scan-next-action-btn .material-symbols-outlined {
+  font-size: 24px;
+}
+
+.decision-back-btn {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
