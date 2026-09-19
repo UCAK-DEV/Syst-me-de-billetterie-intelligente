@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import { formatDateFR } from '../utils/dates';
 
 const TYPE_LABELS = {
@@ -20,12 +21,28 @@ function ViewQrModal({ titre, client, onClose }) {
   };
 
   const handleDownloadImage = () => {
-    const link = document.createElement('a');
-    link.href = titre.qrCodeData;
-    link.download = `QR-${titre.codeUnique}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    if (titre.qrCodeData && (titre.qrCodeData.startsWith('data:image') || titre.qrCodeData.startsWith('http'))) {
+      const link = document.createElement('a');
+      link.href = titre.qrCodeData;
+      link.download = `QR-${titre.codeUnique}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      return;
+    }
+    const svgEl = document.querySelector('.qr-neon-frame svg');
+    if (svgEl) {
+      const svgData = new XMLSerializer().serializeToString(svgEl);
+      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const svgUrl = URL.createObjectURL(svgBlob);
+      const link = document.createElement('a');
+      link.href = svgUrl;
+      link.download = `QR-${titre.codeUnique}.svg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(svgUrl);
+    }
   };
 
   const handleShare = async () => {
@@ -73,11 +90,27 @@ function ViewQrModal({ titre, client, onClose }) {
           {/* Cadre QR Code néon avec faisceau de balayage */}
           <div className="qr-neon-frame">
             <div className="qr-laser-glow-line"></div>
-            <img
-              src={titre.qrCodeData}
-              alt={`QR Code ${titre.codeUnique}`}
-              style={{ width: '210px', height: '210px', display: 'block' }}
-            />
+            {titre.qrCodeData && (titre.qrCodeData.startsWith('data:image') || titre.qrCodeData.startsWith('http')) ? (
+              <img
+                src={titre.qrCodeData}
+                alt={`QR Code ${titre.codeUnique}`}
+                style={{ width: '210px', height: '210px', display: 'block' }}
+              />
+            ) : (
+              <QRCodeSVG
+                value={titre.codeUnique || 'TCK-DK-2026-0891'}
+                size={210}
+                level="M"
+                style={{
+                  width: '210px',
+                  height: '210px',
+                  display: 'block',
+                  backgroundColor: '#ffffff',
+                  padding: '10px',
+                  borderRadius: '12px',
+                }}
+              />
+            )}
           </div>
 
           {/* Tableau structuré de métadonnées */}

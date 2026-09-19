@@ -172,7 +172,7 @@ function FormulesManagement() {
             <span className="material-symbols-outlined search-icon">search</span>
             <input
               type="text"
-              placeholder="Rechercher par nom ou description..."
+              placeholder="Rechercher une formule..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="search-input"

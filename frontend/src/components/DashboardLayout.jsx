@@ -135,33 +135,25 @@ function DashboardLayout() {
 
   return (
     <div className="app-shell">
-      {/* Barre supérieure mobile (affichée uniquement sous <= 768px) */}
+      {/* Barre supérieure mobile (affichée uniquement sous <= 768px, sans redondance) */}
       <header className="mobile-topbar" aria-label="Navigation mobile">
-        <button
-          type="button"
-          className="mobile-menu-btn"
-          onClick={() => setMobileNavOpen(true)}
-          aria-label="Ouvrir le menu de navigation"
-          title="Ouvrir le menu"
-        >
-          <span className="material-symbols-outlined">menu</span>
-        </button>
-
         <div className="mobile-brand">
           <span className="material-symbols-outlined nav-brand-icon">local_activity</span>
-          <span className="mobile-brand-title">Billetterie</span>
+          <span className="mobile-brand-title">SunuTicket</span>
         </div>
 
         <div className="mobile-actions">
-          <button
-            type="button"
-            className="mobile-action-btn"
-            onClick={() => setPaletteOpen(true)}
-            title="Rechercher (Ctrl+K)"
-            aria-label="Rechercher"
-          >
-            <span className="material-symbols-outlined">search</span>
-          </button>
+          {isAdmin && (
+            <button
+              type="button"
+              className="mobile-action-btn"
+              onClick={() => setPaletteOpen(true)}
+              title="Rechercher (Ctrl+K)"
+              aria-label="Rechercher"
+            >
+              <span className="material-symbols-outlined">search</span>
+            </button>
+          )}
 
           <button
             type="button"
@@ -175,19 +167,15 @@ function DashboardLayout() {
             </span>
           </button>
 
-          {user && (
-            <Link to="/profile" className="mobile-user-avatar" title="Mon profil">
-              {user.photo ? (
-                <img
-                  src={photoUrl(user.photo)}
-                  alt=""
-                  style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
-                />
-              ) : (
-                user.prenom ? user.prenom[0].toUpperCase() : 'U'
-              )}
-            </Link>
-          )}
+          <button
+            type="button"
+            className="mobile-action-btn mobile-logout-btn"
+            onClick={handleLogout}
+            title="Se déconnecter"
+            aria-label="Se déconnecter"
+          >
+            <span className="material-symbols-outlined">logout</span>
+          </button>
         </div>
       </header>
 
@@ -345,52 +333,28 @@ function DashboardLayout() {
         {!blockedForRole && <Outlet />}
       </main>
 
-      {/* Barre de navigation flottante mobile (Floating Pill Nav avec bouton central surélevé) */}
+      {/* Barre de navigation basse mobile (ciblée par rôle, zéro doublon ni scan pour client) */}
       <nav className="mobile-bottom-nav mobile-floating-nav" aria-label="Navigation mobile">
         {isClient && (
           <>
             <Link to="/mes-titres" className={`bottom-nav-item${currentPath === '/mes-titres' ? ' active' : ''}`}>
               <span className="material-symbols-outlined">confirmation_number</span>
-              <span>Titres</span>
-            </Link>
-
-            <Link
-              to="/mes-titres"
-              className="bottom-nav-item nav-central-action"
-              title="Accès QR Code direct"
-            >
-              <span className="nav-central-icon-wrapper">
-                <span className="material-symbols-outlined">qr_code_2</span>
-              </span>
+              <span>Mes billets</span>
             </Link>
 
             <Link to="/profile" className={`bottom-nav-item${currentPath === '/profile' ? ' active' : ''}`}>
               <span className="material-symbols-outlined">account_circle</span>
-              <span>Profil</span>
+              <span>Mon profil</span>
             </Link>
-
-            <button
-              type="button"
-              className="bottom-nav-item bottom-nav-btn"
-              onClick={() => setMobileNavOpen(true)}
-            >
-              <span className="material-symbols-outlined">menu</span>
-              <span>Menu</span>
-            </button>
           </>
         )}
 
         {isAgent && (
           <>
-            <Link to="/validations" className={`bottom-nav-item${currentPath === '/validations' ? ' active' : ''}`}>
-              <span className="material-symbols-outlined">history</span>
-              <span>Historique</span>
-            </Link>
-
             <Link
               to="/scan"
               className={`bottom-nav-item nav-central-action${currentPath === '/scan' ? ' active' : ''}`}
-              title="Scanner Caméra"
+              title="Contrôle des billets"
             >
               <span className="nav-central-icon-wrapper">
                 <span className="material-symbols-outlined">qr_code_scanner</span>
@@ -402,14 +366,15 @@ function DashboardLayout() {
               <span>Titres</span>
             </Link>
 
-            <button
-              type="button"
-              className="bottom-nav-item bottom-nav-btn"
-              onClick={() => setMobileNavOpen(true)}
-            >
-              <span className="material-symbols-outlined">menu</span>
-              <span>Menu</span>
-            </button>
+            <Link to="/validations" className={`bottom-nav-item${currentPath === '/validations' ? ' active' : ''}`}>
+              <span className="material-symbols-outlined">history</span>
+              <span>Historique</span>
+            </Link>
+
+            <Link to="/profile" className={`bottom-nav-item${currentPath === '/profile' ? ' active' : ''}`}>
+              <span className="material-symbols-outlined">account_circle</span>
+              <span>Profil</span>
+            </Link>
           </>
         )}
 
@@ -437,10 +402,11 @@ function DashboardLayout() {
 
             <button
               type="button"
-              className="bottom-nav-item bottom-nav-btn"
-              onClick={() => setMobileNavOpen(true)}
+              className={`bottom-nav-item bottom-nav-btn${mobileNavOpen ? ' active' : ''}`}
+              onClick={() => setMobileNavOpen((prev) => !prev)}
+              title="Sections complémentaires"
             >
-              <span className="material-symbols-outlined">menu</span>
+              <span className="material-symbols-outlined">more_horiz</span>
               <span>Plus</span>
             </button>
           </>

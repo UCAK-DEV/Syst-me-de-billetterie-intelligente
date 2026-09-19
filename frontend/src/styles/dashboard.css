@@ -657,10 +657,11 @@ body {
 /* Headers */
 .page-title {
   font-family: 'Outfit', sans-serif;
-  font-size: 2rem;
-  font-weight: 900;
+  font-size: 1.85rem;
+  font-weight: 800;
   color: var(--text-dark);
-  letter-spacing: -0.03em;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
   margin: 0;
 }
 
@@ -986,6 +987,7 @@ body {
 /* Glass Table Styles */
 .user-table {
   width: 100%;
+  min-width: 620px;
   border-collapse: collapse;
 }
 
@@ -1093,8 +1095,10 @@ body {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(15, 23, 42, 0.45);
-  z-index: 100;
+  background-color: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 2000 !important;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3388,6 +3392,16 @@ body {
   background: var(--input-bg);
   color: var(--text-dark);
   cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mobile-logout-btn {
+  color: #ef4444 !important;
+}
+
+.mobile-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.12) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
 }
 
 .mobile-user-avatar {
@@ -3466,6 +3480,7 @@ body {
   display: none;
   flex-direction: column;
   gap: 0.85rem;
+  padding-bottom: 2.5rem;
 }
 
 .client-desktop-table {
@@ -3619,14 +3634,18 @@ body {
 
   /* Contenu principal et marge basse pour la bottom bar */
   .app-content {
-    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(105px + env(safe-area-inset-bottom, 0px));
     width: 100%;
     min-width: 0;
   }
 
   .main-content {
-    padding: 1.15rem 0.85rem calc(24px + env(safe-area-inset-bottom, 0px)) 0.85rem;
+    padding: 1.15rem 0.85rem calc(105px + env(safe-area-inset-bottom, 0px)) 0.85rem !important;
     gap: 1.25rem;
+  }
+
+  .sidebar-collapse-btn {
+    display: none !important;
   }
 
   /* Sidebar Drawer coulissant */
@@ -3710,7 +3729,10 @@ body {
   }
 
   .page-title {
-    font-size: 1.45rem;
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
   }
 
   .page-subtitle {
@@ -3874,14 +3896,16 @@ body {
   .modal-overlay {
     padding: 0.5rem;
     align-items: flex-end;
+    z-index: 2000 !important;
   }
 
   .modal-panel {
-    max-height: calc(100dvh - 1.5rem);
+    max-height: calc(100dvh - 2rem);
     width: 100%;
-    border-radius: 1rem 1rem 0.5rem 0.5rem;
+    border-radius: 1.25rem 1.25rem 0.5rem 0.5rem;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    margin-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   .modal-header {
@@ -3933,7 +3957,8 @@ body {
 
   /* Palette de commandes sur petit smartphone */
   .command-palette-overlay {
-    padding: 1rem 0.5rem;
+    padding: 1.25rem 0.5rem !important;
+    align-items: flex-start !important;
   }
 }
 
@@ -4354,39 +4379,91 @@ body {
   }
 }
 
-/* 3. Viseur Caméra Haute Précision & Laser de Scan (Écran Centre de la Maquette) */
+/* 3. Viseur Caméra Épuré & Haute Précision (UN SEUL CADRE NET) */
+/* Suppression absolue de tous les cadres et ombres multiples générés par html5-qrcode */
+#qr-reader-camera,
+#qr-reader-camera * {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+#qr-shaded-region,
+#qr-shaded-region *,
+#qr-reader-camera #qr-shaded-region,
+#qr-reader-camera #qr-shaded-region div {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  pointer-events: none !important;
+}
+
+#qr-reader-camera {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  background-color: #000000 !important;
+  border-radius: 28px !important;
+  overflow: hidden !important;
+}
+
+#qr-reader-camera > div,
+#qr-reader-camera__scan_region {
+  width: 100% !important;
+  height: 100% !important;
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+}
+
+#qr-reader-camera video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 28px !important;
+}
+
 .scanner-viewfinder-overlay {
   position: relative;
-  width: 100%;
-  max-width: 380px;
-  height: 380px;
+  width: min(88vw, 360px);
+  height: min(88vw, 360px);
+  aspect-ratio: 1 / 1;
   margin: 0 auto;
   border-radius: 28px;
   overflow: hidden;
   background-color: #000000;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
 }
 
+/* L'unique cadre de cadrage (propre, aéré et non encombré) */
 .scanner-viewfinder-box {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 260px;
-  height: 260px;
+  width: min(60vw, 220px);
+  height: min(60vw, 220px);
+  aspect-ratio: 1 / 1;
   pointer-events: none;
   z-index: 10;
+  box-sizing: border-box;
 }
 
-/* Coins lumineux (Brackets) */
+/* Coins lumineux élégants uniques */
 .scanner-bracket {
   position: absolute;
-  width: 32px;
-  height: 32px;
-  border-color: #ffffff;
+  width: 30px;
+  height: 30px;
+  border-color: #818cf8;
   border-style: solid;
   border-width: 0;
-  filter: drop-shadow(0 0 6px var(--primary-color));
+  filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.85));
 }
 
 .scanner-bracket-tl {
@@ -4394,7 +4471,7 @@ body {
   left: 0;
   border-top-width: 3.5px;
   border-left-width: 3.5px;
-  border-top-left-radius: 16px;
+  border-top-left-radius: 12px;
 }
 
 .scanner-bracket-tr {
@@ -4402,7 +4479,7 @@ body {
   right: 0;
   border-top-width: 3.5px;
   border-right-width: 3.5px;
-  border-top-right-radius: 16px;
+  border-top-right-radius: 12px;
 }
 
 .scanner-bracket-bl {
@@ -4410,7 +4487,7 @@ body {
   left: 0;
   border-bottom-width: 3.5px;
   border-left-width: 3.5px;
-  border-bottom-left-radius: 16px;
+  border-bottom-left-radius: 12px;
 }
 
 .scanner-bracket-br {
@@ -4418,7 +4495,7 @@ body {
   right: 0;
   border-bottom-width: 3.5px;
   border-right-width: 3.5px;
-  border-bottom-right-radius: 16px;
+  border-bottom-right-radius: 12px;
 }
 
 /* Faisceau laser animé */
@@ -4426,7 +4503,7 @@ body {
   position: absolute;
   left: 6px;
   right: 6px;
-  height: 3px;
+  height: 2.5px;
   background: linear-gradient(90deg, transparent 0%, var(--primary-color) 30%, #ffffff 50%, var(--primary-color) 70%, transparent 100%);
   box-shadow: 0 0 14px var(--primary-color), 0 0 22px var(--primary-color);
   animation: scanLaserMovement 2.2s ease-in-out infinite alternate;
@@ -4434,38 +4511,50 @@ body {
 }
 
 @keyframes scanLaserMovement {
-  0% { top: 8%; opacity: 0.7; }
+  0% { top: 6%; opacity: 0.7; }
   50% { opacity: 1; }
-  100% { top: 92%; opacity: 0.7; }
+  100% { top: 94%; opacity: 0.7; }
 }
 
-/* Pilule d'état de scan */
-.scanner-status-pill {
-  position: absolute;
-  bottom: 18px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: rgba(10, 15, 24, 0.78);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--primary-color);
-  border-radius: 9999px;
-  padding: 6px 16px;
+/* Pilule d'état de scan centrée sous le viseur */
+.scanner-status-pill-row {
   display: flex;
+  justify-content: center;
+  margin-top: 0.75rem;
+}
+
+.scanner-status-pill {
+  background-color: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  border-radius: 9999px;
+  padding: 6px 18px;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
   color: #ffffff;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 650;
-  z-index: 15;
-  box-shadow: 0 4px 14px var(--primary-glow-subtle);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.scanner-status-pill.loading {
+  border-color: #f59e0b;
 }
 
 .scanner-status-pill .pulse-indicator {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background-color: var(--primary-color);
-  box-shadow: 0 0 8px var(--primary-color);
+  background-color: var(--primary-color, #6366f1);
+  box-shadow: 0 0 10px var(--primary-color, #6366f1);
+  animation: pulseDot 1.6s ease-in-out infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.75); }
 }
 
 /* 4. Cartes Mobiles pour l'Historique de Scan (Écran Gauche de la Maquette) */
@@ -4670,8 +4759,8 @@ body {
   padding: 0.75rem 1rem;
   border-radius: var(--radius-btn, 14px);
   background: var(--primary-color);
-  box-shadow: 0 6px 20px var(--primary-glow);
-  font-size: 0.85rem;
+  box-shadow: 0 4px 14px var(--primary-glow);
+  font-size: 0.88rem;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -4680,21 +4769,37 @@ body {
   color: #ffffff;
   border: none;
   cursor: pointer;
+  min-height: 46px;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+}
+
+.qr-glow-action-btn:active {
+  transform: scale(0.97);
 }
 
 .qr-share-btn {
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 1.25rem;
   border-radius: var(--radius-btn, 14px);
-  background-color: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--border-glass);
+  background-color: var(--card-bg);
+  border: 1.5px solid var(--border-glass);
   color: var(--text-dark);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
   cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.88rem;
+  font-weight: 700;
+  min-height: 46px;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.qr-share-btn:hover {
+  background-color: var(--input-bg);
+}
+
+.qr-share-btn:active {
+  transform: scale(0.97);
 }
 
 /* ==========================================================================
@@ -5074,5 +5179,163 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+}
+
+/* ==========================================================================
+   OPTIMISATIONS RESPONSIVES MOBILE POUR LE SCANNER & CONTRÔLE DES TITRES
+   ========================================================================== */
+
+.camera-flip-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.4rem !important;
+  border-color: rgba(99, 102, 241, 0.4) !important;
+}
+
+.camera-flip-pill.active {
+  background-color: rgba(99, 102, 241, 0.16) !important;
+  color: var(--primary-color) !important;
+}
+
+.tool-pill-cam-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .scan-onboarding-container {
+    padding: 0.75rem 0.75rem calc(4.5rem + env(safe-area-inset-bottom, 0px));
+    gap: 1rem;
+  }
+
+  .scan-wizard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    gap: 0.35rem;
+    padding: 0.25rem 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .scan-steps-badge-row {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 1;
+    min-width: 0;
+  }
+
+  .scan-step-badge {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.72rem;
+    white-space: nowrap;
+  }
+
+  .scan-quick-tools {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+  }
+
+  .tool-pill-cam-label,
+  .session-count-text {
+    display: none;
+  }
+
+  .tool-pill-btn {
+    padding: 0.35rem;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+
+  .scan-main-title {
+    font-size: 1.2rem;
+  }
+
+  .scan-main-subtitle {
+    font-size: 0.78rem;
+  }
+
+  .scanner-viewfinder-overlay {
+    width: min(72vw, 250px);
+    height: min(72vw, 250px);
+    border-radius: 20px;
+  }
+
+  .scanner-viewfinder-box {
+    width: min(54vw, 180px);
+    height: min(54vw, 180px);
+  }
+
+  .scanner-bracket {
+    width: 26px;
+    height: 26px;
+  }
+
+  .scan-secondary-options {
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+
+  .scan-manual-trigger-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.65rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  .scan-decision-card {
+    padding: 1.5rem 1rem;
+    border-radius: 20px;
+  }
+
+  .decision-icon-circle {
+    width: 76px;
+    height: 76px;
+  }
+
+  .decision-icon-circle .material-symbols-outlined {
+    font-size: 44px;
+  }
+
+  .decision-title {
+    font-size: 1.35rem;
+  }
+
+  .decision-meta-card {
+    padding: 0.75rem 1rem;
+  }
+
+  .scan-next-action-btn {
+    padding: 0.95rem 1.25rem;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .scan-step-badge .step-text {
+    display: none;
+  }
+
+  .scanner-viewfinder-overlay {
+    width: 90vw;
+    height: 90vw;
+  }
+
+  .scanner-viewfinder-box {
+    width: 64vw;
+    height: 64vw;
+  }
 }
 
