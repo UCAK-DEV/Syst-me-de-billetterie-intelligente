@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { getStoredUser, clearAuth, api, photoUrl } from '../services/api';
 import CommandPalette from './CommandPalette';
+import ThemeCustomizerModal from './ThemeCustomizerModal';
 import { useTheme } from '../context/ThemeContext.jsx';
 import '../styles/dashboard.css';
 
@@ -34,7 +35,7 @@ function DashboardLayout() {
   const location = useLocation();
   const currentPath = location.pathname;
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, openCustomizer } = useTheme();
   const [user, setUser] = useState(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(getStoredCollapsed);
@@ -161,6 +162,16 @@ function DashboardLayout() {
             aria-label="Rechercher"
           >
             <span className="material-symbols-outlined">search</span>
+          </button>
+
+          <button
+            type="button"
+            className="mobile-action-btn mobile-palette-btn"
+            onClick={openCustomizer}
+            title="Personnaliser les couleurs & le thème"
+            aria-label="Personnaliser le thème"
+          >
+            <span className="material-symbols-outlined">palette</span>
           </button>
 
           <button
@@ -313,6 +324,16 @@ function DashboardLayout() {
             </Link>
 
             <button
+              onClick={openCustomizer}
+              className="sidebar-theme-btn"
+              title="Personnaliser les couleurs & le thème"
+              aria-label="Personnaliser le thème"
+            >
+              <span className="material-symbols-outlined">palette</span>
+              <span className="sidebar-link-text">Personnaliser</span>
+            </button>
+
+            <button
               onClick={toggleTheme}
               className="sidebar-theme-btn"
               title={theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'}
@@ -344,18 +365,30 @@ function DashboardLayout() {
         {!blockedForRole && <Outlet />}
       </main>
 
-      {/* Barre de navigation basse pour mobile (Bottom Navigation Bar) */}
-      <nav className="mobile-bottom-nav" aria-label="Navigation rapide mobile">
+      {/* Barre de navigation flottante mobile (Floating Pill Nav avec bouton central surélevé) */}
+      <nav className="mobile-bottom-nav mobile-floating-nav" aria-label="Navigation mobile">
         {isClient && (
           <>
             <Link to="/mes-titres" className={`bottom-nav-item${currentPath === '/mes-titres' ? ' active' : ''}`}>
               <span className="material-symbols-outlined">confirmation_number</span>
-              <span>Mes titres</span>
+              <span>Titres</span>
             </Link>
+
+            <Link
+              to="/mes-titres"
+              className="bottom-nav-item nav-central-action"
+              title="Accès QR Code direct"
+            >
+              <span className="nav-central-icon-wrapper">
+                <span className="material-symbols-outlined">qr_code_2</span>
+              </span>
+            </Link>
+
             <Link to="/profile" className={`bottom-nav-item${currentPath === '/profile' ? ' active' : ''}`}>
               <span className="material-symbols-outlined">account_circle</span>
               <span>Profil</span>
             </Link>
+
             <button
               type="button"
               className="bottom-nav-item bottom-nav-btn"
@@ -369,18 +402,26 @@ function DashboardLayout() {
 
         {isAgent && (
           <>
-            <Link to="/scan" className={`bottom-nav-item${currentPath === '/scan' ? ' active' : ''}`}>
-              <span className="material-symbols-outlined">qr_code_scanner</span>
-              <span>Scan</span>
-            </Link>
-            <Link to="/titres" className={`bottom-nav-item${currentPath === '/titres' ? ' active' : ''}`}>
-              <span className="material-symbols-outlined">confirmation_number</span>
-              <span>Titres</span>
-            </Link>
             <Link to="/validations" className={`bottom-nav-item${currentPath === '/validations' ? ' active' : ''}`}>
               <span className="material-symbols-outlined">history</span>
               <span>Historique</span>
             </Link>
+
+            <Link
+              to="/scan"
+              className={`bottom-nav-item nav-central-action${currentPath === '/scan' ? ' active' : ''}`}
+              title="Scanner Caméra"
+            >
+              <span className="nav-central-icon-wrapper">
+                <span className="material-symbols-outlined">qr_code_scanner</span>
+              </span>
+            </Link>
+
+            <Link to="/titres" className={`bottom-nav-item${currentPath === '/titres' ? ' active' : ''}`}>
+              <span className="material-symbols-outlined">confirmation_number</span>
+              <span>Titres</span>
+            </Link>
+
             <button
               type="button"
               className="bottom-nav-item bottom-nav-btn"
@@ -398,18 +439,22 @@ function DashboardLayout() {
               <span className="material-symbols-outlined">bar_chart</span>
               <span>Bord</span>
             </Link>
-            <Link to="/scan" className={`bottom-nav-item${currentPath === '/scan' ? ' active' : ''}`}>
-              <span className="material-symbols-outlined">qr_code_scanner</span>
-              <span>Scan</span>
+
+            <Link
+              to="/scan"
+              className={`bottom-nav-item nav-central-action${currentPath === '/scan' ? ' active' : ''}`}
+              title="Scanner Caméra"
+            >
+              <span className="nav-central-icon-wrapper">
+                <span className="material-symbols-outlined">qr_code_scanner</span>
+              </span>
             </Link>
-            <Link to="/titres" className={`bottom-nav-item${currentPath === '/titres' ? ' active' : ''}`}>
-              <span className="material-symbols-outlined">confirmation_number</span>
-              <span>Titres</span>
-            </Link>
+
             <Link to="/users" className={`bottom-nav-item${currentPath === '/users' ? ' active' : ''}`}>
               <span className="material-symbols-outlined">group</span>
               <span>Comptes</span>
             </Link>
+
             <button
               type="button"
               className="bottom-nav-item bottom-nav-btn"
@@ -423,6 +468,7 @@ function DashboardLayout() {
       </nav>
 
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} entries={paletteEntries} />
+      <ThemeCustomizerModal />
     </div>
   );
 }

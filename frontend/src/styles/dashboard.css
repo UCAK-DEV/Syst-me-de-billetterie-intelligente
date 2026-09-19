@@ -3929,3 +3929,763 @@ body {
     padding: 1rem 0.5rem;
   }
 }
+
+/* ==========================================================================
+   NOUVELLE EXPÉRIENCE MOBILE HAUT DE GAMME & PERSONNALISATION DE THÈMES
+   (Inspirée de la maquette mobile de référence et recommandation enseignant)
+   ========================================================================== */
+
+/* 1. Modal & Tiroir de Personnalisation Graphique */
+.customizer-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(5, 8, 15, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 2000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: customizerFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes customizerFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.customizer-panel {
+  width: 100%;
+  max-width: 520px;
+  background-color: var(--card-bg);
+  border-top-left-radius: 28px;
+  border-top-right-radius: 28px;
+  border: 1px solid var(--border-glass);
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  max-height: 88vh;
+  animation: customizerSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+@keyframes customizerSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@media (min-width: 769px) {
+  .customizer-backdrop {
+    align-items: center;
+  }
+  .customizer-panel {
+    border-radius: 24px;
+    max-height: 84vh;
+  }
+}
+
+.customizer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-glass);
+}
+
+.customizer-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.customizer-icon {
+  font-size: 28px;
+  color: var(--primary-color);
+}
+
+.customizer-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.customizer-subtitle {
+  margin: 2px 0 0 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.customizer-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.customizer-close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-dark);
+}
+
+.customizer-body {
+  padding: 1.35rem 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.customizer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.customizer-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+/* Grille de sélection des 6 couleurs d'accent */
+.accent-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+@media (max-width: 420px) {
+  .accent-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.accent-card {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem 0.85rem;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1.5px solid var(--border-glass);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+}
+
+.accent-card:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.accent-card.active {
+  border-color: var(--primary-color);
+  background-color: var(--primary-light);
+  box-shadow: 0 4px 14px var(--primary-glow-subtle);
+}
+
+.accent-circle {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.accent-card.active .accent-circle {
+  transform: scale(1.1);
+}
+
+.accent-circle .check-icon {
+  font-size: 14px;
+  color: #ffffff;
+  font-weight: 900;
+}
+
+.accent-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Sélecteur de mode (OLED, Slate, Clair) */
+.mode-selector-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.65rem;
+}
+
+.mode-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.85rem 0.5rem;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1.5px solid var(--border-glass);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mode-pill:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.mode-pill.active {
+  border-color: var(--primary-color);
+  background-color: var(--primary-light);
+  box-shadow: 0 4px 14px var(--primary-glow-subtle);
+}
+
+.mode-icon {
+  font-size: 22px;
+  color: var(--text-muted);
+}
+
+.mode-pill.active .mode-icon {
+  color: var(--primary-color);
+}
+
+.mode-label {
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: var(--text-dark);
+}
+
+/* Sélecteur d'arrondis */
+.radius-selector-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+
+.radius-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1.5px solid var(--border-glass);
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.radius-pill.active {
+  border-color: var(--primary-color);
+  background-color: var(--primary-light);
+  box-shadow: 0 4px 14px var(--primary-glow-subtle);
+}
+
+.radius-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.radius-desc {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* Aperçu direct des composants */
+.customizer-preview-box {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px dashed var(--border-glass);
+  border-radius: var(--radius-card, 18px);
+  padding: 1rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.preview-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.preview-badge {
+  display: inline-flex;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+  font-size: 0.72rem;
+  font-weight: 750;
+  border: 1px solid var(--primary-color);
+}
+
+.preview-laser-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  box-shadow: 0 0 10px var(--primary-color);
+  animation: pulseDot 1.4s infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.4); opacity: 1; }
+}
+
+.preview-text {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.preview-actions .preview-btn {
+  width: 100%;
+  padding: 0.65rem 1rem;
+  font-size: 0.82rem;
+  border-radius: var(--radius-btn, 14px);
+  background: var(--primary-color);
+  box-shadow: 0 4px 14px var(--primary-glow);
+}
+
+.customizer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-glass);
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.customizer-reset-btn {
+  padding: 0.6rem 1rem;
+  font-size: 0.82rem;
+}
+
+.customizer-confirm-btn {
+  flex: 1;
+  padding: 0.65rem 1rem;
+  font-size: 0.85rem;
+  background: var(--primary-color);
+  box-shadow: 0 4px 14px var(--primary-glow);
+}
+
+/* 2. Barre de Navigation Flottante Mobile (Floating Pill Nav) */
+@media (max-width: 768px) {
+  .mobile-floating-nav {
+    position: fixed;
+    bottom: 14px !important;
+    left: 14px !important;
+    right: 14px !important;
+    height: 62px !important;
+    background-color: var(--floating-nav-bg, rgba(15, 21, 32, 0.88)) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border-radius: 32px !important;
+    border: 1px solid var(--border-glass) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.42), 0 0 20px var(--primary-glow-subtle) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-around !important;
+    padding: 0 0.5rem !important;
+    z-index: 1000 !important;
+  }
+
+  /* Bouton Central Surélevé & Lumineux */
+  .nav-central-action {
+    position: relative;
+    top: -14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    flex: 0 0 auto !important;
+    margin: 0 6px;
+  }
+
+  .nav-central-icon-wrapper {
+    width: 52px;
+    height: 52px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    box-shadow: 0 6px 20px var(--primary-glow), 0 0 0 4px var(--body-bg);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+  }
+
+  .nav-central-action:active .nav-central-icon-wrapper {
+    transform: scale(0.92);
+    box-shadow: 0 2px 10px var(--primary-glow);
+  }
+
+  .nav-central-icon-wrapper .material-symbols-outlined {
+    font-size: 28px;
+    color: #ffffff;
+  }
+}
+
+/* 3. Viseur Caméra Haute Précision & Laser de Scan (Écran Centre de la Maquette) */
+.scanner-viewfinder-overlay {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  height: 380px;
+  margin: 0 auto;
+  border-radius: 28px;
+  overflow: hidden;
+  background-color: #000000;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+}
+
+.scanner-viewfinder-box {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 260px;
+  height: 260px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Coins lumineux (Brackets) */
+.scanner-bracket {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border-color: #ffffff;
+  border-style: solid;
+  border-width: 0;
+  filter: drop-shadow(0 0 6px var(--primary-color));
+}
+
+.scanner-bracket-tl {
+  top: 0;
+  left: 0;
+  border-top-width: 3.5px;
+  border-left-width: 3.5px;
+  border-top-left-radius: 16px;
+}
+
+.scanner-bracket-tr {
+  top: 0;
+  right: 0;
+  border-top-width: 3.5px;
+  border-right-width: 3.5px;
+  border-top-right-radius: 16px;
+}
+
+.scanner-bracket-bl {
+  bottom: 0;
+  left: 0;
+  border-bottom-width: 3.5px;
+  border-left-width: 3.5px;
+  border-bottom-left-radius: 16px;
+}
+
+.scanner-bracket-br {
+  bottom: 0;
+  right: 0;
+  border-bottom-width: 3.5px;
+  border-right-width: 3.5px;
+  border-bottom-right-radius: 16px;
+}
+
+/* Faisceau laser animé */
+.scanner-laser-line {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 0%, var(--primary-color) 30%, #ffffff 50%, var(--primary-color) 70%, transparent 100%);
+  box-shadow: 0 0 14px var(--primary-color), 0 0 22px var(--primary-color);
+  animation: scanLaserMovement 2.2s ease-in-out infinite alternate;
+  z-index: 12;
+}
+
+@keyframes scanLaserMovement {
+  0% { top: 8%; opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { top: 92%; opacity: 0.7; }
+}
+
+/* Pilule d'état de scan */
+.scanner-status-pill {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(10, 15, 24, 0.78);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--primary-color);
+  border-radius: 9999px;
+  padding: 6px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 650;
+  z-index: 15;
+  box-shadow: 0 4px 14px var(--primary-glow-subtle);
+}
+
+.scanner-status-pill .pulse-indicator {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  box-shadow: 0 0 8px var(--primary-color);
+}
+
+/* 4. Cartes Mobiles pour l'Historique de Scan (Écran Gauche de la Maquette) */
+.history-filter-pills {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.15rem;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.history-pill {
+  padding: 0.5rem 1.15rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border-glass);
+  background-color: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.history-pill:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-dark);
+}
+
+.history-pill.active {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #ffffff;
+  box-shadow: 0 4px 14px var(--primary-glow);
+}
+
+.history-mobile-cards {
+  display: none;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .history-mobile-cards {
+    display: flex;
+  }
+}
+
+.history-card-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.95rem 1.1rem;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-card, 18px);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.history-card-item:active {
+  transform: scale(0.98);
+}
+
+.history-card-left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.history-card-icon-box {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 20px;
+}
+
+.history-card-icon-box.autorise {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.history-card-icon-box.refuse {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.history-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.history-card-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.history-card-meta {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.history-card-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* 5. Affichage QR Code Futuriste (Écran Droit de la Maquette) */
+.qr-showcase-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.5rem 1.25rem;
+  background-color: var(--card-bg);
+  border-radius: var(--radius-card, 24px);
+  border: 1px solid var(--border-glass);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.qr-neon-frame {
+  position: relative;
+  padding: 1rem;
+  border-radius: 20px;
+  background-color: #ffffff;
+  box-shadow: 0 0 24px var(--primary-glow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.qr-laser-glow-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+  box-shadow: 0 0 12px var(--primary-color);
+  animation: qrLaserScan 3s linear infinite;
+}
+
+@keyframes qrLaserScan {
+  0% { top: 0%; opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.qr-meta-table {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.75rem 0.5rem;
+}
+
+.qr-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--border-glass);
+}
+
+.qr-meta-label {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.qr-meta-val {
+  color: var(--text-dark);
+  font-weight: 700;
+  font-family: var(--font-mono, monospace);
+}
+
+.qr-action-buttons {
+  width: 100%;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.qr-glow-action-btn {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-btn, 14px);
+  background: var(--primary-color);
+  box-shadow: 0 6px 20px var(--primary-glow);
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+}
+
+.qr-share-btn {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-btn, 14px);
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-glass);
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+}

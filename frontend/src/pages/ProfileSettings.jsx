@@ -4,6 +4,7 @@ import { api, setStoredUser, photoUrl } from '../services/api';
 import { validateNewPassword, validateUserForm } from '../utils/validators';
 import PasswordInput from '../components/PasswordInput';
 import { formatDateFR } from '../utils/dates';
+import { useTheme, ACCENT_PRESETS, THEME_MODES, RADIUS_PRESETS } from '../context/ThemeContext';
 import './ProfileSettings.css';
 
 function ProfileSettings() {
@@ -12,6 +13,7 @@ function ProfileSettings() {
 
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { theme, accentColor, borderRadius, setTheme, setAccentColor, setBorderRadius, resetCustomization } = useTheme();
 
   // Formulaire informations personnelles
   const [nom, setNom] = useState('');
@@ -296,6 +298,97 @@ function ProfileSettings() {
                 </button>
               </div>
             </form>
+          </section>
+
+          {/* Section Personnalisation & Apparence (Suggestion du Professeur) */}
+          <section className="table-card">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+              <div>
+                <h2 className="profile-section-title" style={{ margin: 0 }}>Personnalisation & Apparence</h2>
+                <p className="customizer-subtitle">Choisissez vos couleurs d'accentuation et votre ambiance</p>
+              </div>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={resetCustomization}
+                style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}
+              >
+                Par défaut
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div>
+                <label className="customizer-label">Couleur d'accentuation principale</label>
+                <div className="accent-grid" style={{ marginTop: '0.5rem' }}>
+                  {ACCENT_PRESETS.map((preset) => {
+                    const isActive = preset.id === accentColor;
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        className={`accent-card${isActive ? ' active' : ''}`}
+                        onClick={() => setAccentColor(preset.id)}
+                      >
+                        <span
+                          className="accent-circle"
+                          style={{
+                            backgroundColor: preset.hex,
+                            boxShadow: isActive ? `0 0 12px ${preset.hex}` : 'none',
+                          }}
+                        >
+                          {isActive && <span className="material-symbols-outlined check-icon">check</span>}
+                        </span>
+                        <span className="accent-name">{preset.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="customizer-label">Ambiance générale</label>
+                <div className="mode-selector-row" style={{ marginTop: '0.5rem' }}>
+                  {THEME_MODES.map((mode) => {
+                    const isActive = mode.id === theme;
+                    return (
+                      <button
+                        key={mode.id}
+                        type="button"
+                        className={`mode-pill${isActive ? ' active' : ''}`}
+                        onClick={() => setTheme(mode.id)}
+                      >
+                        <span className="material-symbols-outlined mode-icon">{mode.icon}</span>
+                        <span className="mode-label">{mode.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="customizer-label">Style des formes</label>
+                <div className="radius-selector-row" style={{ marginTop: '0.5rem' }}>
+                  {RADIUS_PRESETS.map((rad) => {
+                    const isActive = rad.id === borderRadius;
+                    return (
+                      <button
+                        key={rad.id}
+                        type="button"
+                        className={`radius-pill${isActive ? ' active' : ''}`}
+                        onClick={() => setBorderRadius(rad.id)}
+                      >
+                        <span className="material-symbols-outlined">rounded_corner</span>
+                        <div>
+                          <div className="radius-name">{rad.name}</div>
+                          <div className="radius-desc">{rad.desc}</div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
           </section>
         </div>
       </div>

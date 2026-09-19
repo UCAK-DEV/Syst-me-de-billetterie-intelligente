@@ -98,6 +98,15 @@ function ScanValidation() {
         playAudioFeedback(res.autorise);
       }
 
+      // Retour haptique sur smartphone
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        try {
+          navigator.vibrate(res.autorise ? [40, 60, 40] : [100, 50, 100]);
+        } catch {
+          // Ignorer si non supporté
+        }
+      }
+
       // Ajout à la session locale
       setHistoriqueSession((prev) => [
         {
@@ -231,9 +240,24 @@ function ScanValidation() {
       )}
 
       {cameraOpen && (
-        <section className="stats-card scan-camera-box">
-          <div id={QR_READER_ID} className="qr-camera-view" />
-          <p className="scan-hint">Cadrez le QR Code du titre de transport dans la zone de lecture.</p>
+        <section className="stats-card scan-camera-box" style={{ overflow: 'hidden', padding: '1rem', textAlign: 'center' }}>
+          <div className="scanner-viewfinder-overlay">
+            <div id={QR_READER_ID} className="qr-camera-view" style={{ width: '100%', height: '100%' }} />
+            <div className="scanner-viewfinder-box">
+              <span className="scanner-bracket scanner-bracket-tl"></span>
+              <span className="scanner-bracket scanner-bracket-tr"></span>
+              <span className="scanner-bracket scanner-bracket-bl"></span>
+              <span className="scanner-bracket scanner-bracket-br"></span>
+              <div className="scanner-laser-line"></div>
+            </div>
+            <div className="scanner-status-pill">
+              <span className="pulse-indicator"></span>
+              <span>{loading ? 'Analyse du QR Code...' : 'Viseur actif · Scanner en cours'}</span>
+            </div>
+          </div>
+          <p className="scan-hint" style={{ marginTop: '0.85rem' }}>
+            Cadrez le QR Code dans les repères lumineux. La détection et le bip sonore sont instantanés.
+          </p>
         </section>
       )}
 
