@@ -1,4 +1,11 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
+let rawApiUrl = (import.meta.env.VITE_API_URL || '/api').trim();
+if (!rawApiUrl.startsWith('http') && !rawApiUrl.startsWith('/')) {
+  rawApiUrl = `/${rawApiUrl}`;
+}
+if (!rawApiUrl.endsWith('/api')) {
+  rawApiUrl = `${rawApiUrl.replace(/\/+$/, '')}/api`;
+}
+const API_URL = rawApiUrl;
 
 // Origine du serveur (sans le /api), pour les fichiers servis en statique
 const SERVER_ORIGIN = API_URL.replace(/\/api\/?$/, '');

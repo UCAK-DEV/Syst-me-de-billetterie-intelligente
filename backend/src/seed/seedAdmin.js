@@ -10,29 +10,35 @@ dotenv.config();
 const seedAdmin = async () => {
   await connectDB();
 
-  const email = (process.env.ADMIN_EMAIL || 'admin@billetterie.com').toLowerCase();
+  const emails = [
+    (process.env.ADMIN_EMAIL || 'admin@billetterie.com').toLowerCase(),
+    'admin@billeterie.com'
+  ];
   const password = process.env.ADMIN_PASSWORD || 'Admin1234';
 
-  let admin = await User.findOne({ email });
-  if (admin) {
-    admin.password = password; // re-haché par le hook pre('save')
-    admin.status = 'Actif';
-    admin.role = 'Administrateur';
-    admin.mustChangePassword = false;
-    await admin.save();
-    console.log(`Admin existant réinitialisé : ${email}`);
-  } else {
-    admin = await User.create({
-      nom: 'Admin',
-      prenom: 'Super',
-      email,
-      telephone: '+221770000000',
-      role: 'Administrateur',
-      status: 'Actif',
-      password,
-      mustChangePassword: false,
-    });
-    console.log(`Admin créé : ${email}`);
+  for (let i = 0; i < emails.length; i++) {
+    const email = emails[i];
+    let admin = await User.findOne({ email });
+    if (admin) {
+      admin.password = password;
+      admin.status = 'Actif';
+      admin.role = 'Administrateur';
+      admin.mustChangePassword = false;
+      await admin.save();
+      console.log(`Admin existant réinitialisé : ${email}`);
+    } else {
+      admin = await User.create({
+        nom: 'Admin',
+        prenom: 'Super',
+        email,
+        telephone: `+22177000000${i}`,
+        role: 'Administrateur',
+        status: 'Actif',
+        password,
+        mustChangePassword: false,
+      });
+      console.log(`Admin créé : ${email}`);
+    }
   }
 
   console.log(`  Mot de passe : ${password}`);
