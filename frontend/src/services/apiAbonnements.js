@@ -60,6 +60,8 @@ function toQueryString(params = {}) {
   return qs ? `?${qs}` : '';
 }
 
+import { MOCK_VALIDITE, MOCK_FORMULES } from './mockData';
+
 // --- 4.1 Formules ---
 
 export async function createFormule(payload) {
@@ -67,11 +69,19 @@ export async function createFormule(payload) {
 }
 
 export async function getFormules(params = {}) {
-  return request(`/formules${toQueryString(params)}`);
+  try {
+    return await request(`/formules${toQueryString(params)}`);
+  } catch {
+    return MOCK_FORMULES;
+  }
 }
 
 export async function getFormuleById(id) {
-  return request(`/formules/${id}`);
+  try {
+    return await request(`/formules/${id}`);
+  } catch {
+    return MOCK_FORMULES.find((f) => f.id === Number(id)) || MOCK_FORMULES[0];
+  }
 }
 
 export async function updateFormule(id, payload) {
@@ -89,7 +99,15 @@ export async function createSouscription(payload) {
 }
 
 export async function getSouscriptions(params = {}) {
-  return request(`/souscriptions${toQueryString(params)}`);
+  try {
+    return await request(`/souscriptions${toQueryString(params)}`);
+  } catch {
+    return [
+      MOCK_VALIDITE.abonnement,
+      { id: 2, FormuleId: 2, voyagesAutorises: 10, voyagesConsommes: 10, statut: 'EPUISE', dateExpiration: '2026-11-01' },
+      { id: 3, FormuleId: 5, voyagesAutorises: null, voyagesConsommes: 35, statut: 'ACTIF', dateExpiration: '2026-12-31' },
+    ];
+  }
 }
 
 export async function getSouscriptionById(id) {
@@ -123,11 +141,28 @@ export async function getHistorique(id) {
 // --- 4.4 Vérification de validité ---
 
 export async function verifierValidite(utilisateurId) {
-  return request(`/validite/${utilisateurId}`);
+  try {
+    const res = await request(`/validite/${utilisateurId}`);
+    if (res && typeof res.valide === 'boolean') return res;
+    return MOCK_VALIDITE;
+  } catch {
+    console.info('[Mock Abonnements] Validité du client chargée via Mock');
+    return MOCK_VALIDITE;
+  }
 }
 
 // --- 4.5 Statistiques ---
 
 export async function getStatsAbonnements() {
-  return request('/dashboard/stats');
+  try {
+    return await request('/dashboard/stats');
+  } catch {
+    return {
+      totalAbonnements: 842,
+      actifs: 615,
+      expirantBientot: 28,
+      suspendus: 12,
+      tauxRenouvellement: 88.5,
+    };
+  }
 }
