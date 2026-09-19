@@ -55,6 +55,8 @@ services:
       dockerfile: Dockerfile
     container_name: billetterie-backend
     restart: unless-stopped
+    ports:
+      - "8000:8000"
     mem_limit: 128m
     deploy:
       resources:
