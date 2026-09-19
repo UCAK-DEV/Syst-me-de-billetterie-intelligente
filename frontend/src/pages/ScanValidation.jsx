@@ -5,6 +5,7 @@ import { motifLabel, motifColors } from '../utils/motifsRefus';
 import { formatDateFR } from '../utils/dates';
 
 const QR_READER_ID = 'qr-reader-camera';
+const QR_FILE_DUMMY_ID = 'qr-reader-file-dummy';
 const HISTORIQUE_STORAGE_KEY = 'scanHistoriqueSession';
 
 const chargerHistoriqueStocke = () => {
@@ -25,7 +26,6 @@ function playAudioFeedback(isSuccess) {
     const ctx = new AudioContext();
 
     if (isSuccess) {
-      // Accord montant agréable (succès)
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sine';
@@ -38,7 +38,6 @@ function playAudioFeedback(isSuccess) {
       osc.start();
       osc.stop(ctx.currentTime + 0.35);
     } else {
-      // Deux bips descendants graves (refus)
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sawtooth';
@@ -57,7 +56,11 @@ function playAudioFeedback(isSuccess) {
 }
 
 function ScanValidation() {
-  // Navigation en 2 étapes style Onboarding / Wizard : 'scanner' ou 'result'
+  const isSecure = typeof window !== 'undefined'
+    ? (window.isSecureContext || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    : true;
+
+  // Navigation en 2 étapes style Onboarding : 'scanner' ou 'result'
   const [step, setStep] = useState('scanner');
 
   const [code, setCode] = useState('');
@@ -66,16 +69,19 @@ function ScanValidation() {
   const [historiqueSession, setHistoriqueSession] = useState(chargerHistoriqueStocke);
   const [soundEnabled, setSoundEnabled] = useState(true);
 
-  // La caméra est activée automatiquement par défaut en Étape 1
+  // La caméra est activée automatiquement par défaut
   const [cameraOpen, setCameraOpen] = useState(true);
   const [cameraError, setCameraError] = useState(null);
+  const [availableCameras, setAvailableCameras] = useState([]);
+  const [currentCameraIdx, setCurrentCameraIdx] = useState(0);
 
-  // Tiroirs déportés pour ne pas surcharger l'écran principal
+  // Tiroirs déportés
   const [manualModalOpen, setManualModalOpen] = useState(false);
   const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
 
   const html5QrRef = useRef(null);
   const scanningRef = useRef(false);
+  const fileInputRef = useRef(null);
 
   // Persistance de l'historique de session
   useEffect(() => {
@@ -161,7 +167,38 @@ function ScanValidation() {
     setCameraOpen(true);
   };
 
-  // Démarrage et arrêt automatique de la caméra en fonction de l'étape
+  // Traitement d'un cliché photo (Fallback tous navigateurs et HTTP)
+  const handlePhotoCapture = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setLoading(true);
+    setCameraError(null);
+
+    try {
+      const dummyReader = new Html5Qrcode(QR_FILE_DUMMY_ID);
+      const decoded = await dummyReader.scanFile(file, false);
+      await dummyReader.clear();
+      handleScan(decoded);
+    } catch (err) {
+      console.warn('Scan image échoué :', err);
+      setCameraError("Impossible de lire de QR Code sur ce cliché. Veuillez cadrer de plus près et reprendre la photo.");
+    } finally {
+      setLoading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  // Inverser la caméra (si plus d'une caméra disponible)
+  const handleFlipCamera = () => {
+    if (availableCameras.length <= 1) return;
+    const nextIdx = (currentCameraIdx + 1) % availableCameras.length;
+    setCurrentCameraIdx(nextIdx);
+    setCameraOpen(false);
+    setTimeout(() => setCameraOpen(true), 200);
+  };
+
+  // Démarrage intelligent de la caméra (caméra arrière en priorité, puis webcam, avec repli automatique)
   useEffect(() => {
     if (step !== 'scanner' || !cameraOpen) {
       if (html5QrRef.current) {
@@ -177,34 +214,82 @@ function ScanValidation() {
     setCameraError(null);
     let cancelled = false;
 
-    // Attente du montage du DOM pour le lecteur
-    const timer = setTimeout(() => {
+    const timer = setTimeout(async () => {
       const el = document.getElementById(QR_READER_ID);
       if (!el || cancelled) return;
 
       const instance = new Html5Qrcode(QR_READER_ID);
       html5QrRef.current = instance;
 
-      instance
-        .start(
-          { facingMode: 'environment' },
-          { fps: 12, qrbox: { width: 250, height: 250 } },
-          (decodedText) => {
-            if (scanningRef.current) return;
-            scanningRef.current = true;
-            handleScan(decodedText).finally(() => {
-              setTimeout(() => { scanningRef.current = false; }, 1200);
-            });
-          },
-          () => {} // Ignorer les frames intermédiaires
-        )
-        .catch((err) => {
-          if (cancelled) return;
-          console.warn('Caméra indisponible :', err);
-          setCameraError("Caméra indisponible ou permission refusée. Vous pouvez utiliser la saisie manuelle.");
-          setCameraOpen(false);
+      const onScanSuccess = (decodedText) => {
+        if (scanningRef.current) return;
+        scanningRef.current = true;
+        handleScan(decodedText).finally(() => {
+          setTimeout(() => { scanningRef.current = false; }, 1200);
         });
-    }, 150);
+      };
+
+      try {
+        // 1. Découverte matérielle des caméras
+        let deviceList = [];
+        try {
+          deviceList = await Html5Qrcode.getCameras();
+          if (!cancelled && Array.isArray(deviceList)) {
+            setAvailableCameras(deviceList);
+          }
+        } catch {
+          // Ignorer si l'énumération n'est pas permise
+        }
+
+        if (cancelled) return;
+
+        // 2. Choix de la configuration (Caméra spécifique ou facingMode)
+        let configToTry = null;
+        if (deviceList.length > 0) {
+          // Si l'utilisateur a choisi un index valide
+          const selected = deviceList[currentCameraIdx] || deviceList[0];
+          configToTry = selected.id;
+        } else {
+          configToTry = { facingMode: 'environment' };
+        }
+
+        // 3. Démarrage de la caméra avec fallback vers webcam avant si arrière absente
+        try {
+          await instance.start(
+            configToTry,
+            { fps: 12, qrbox: { width: 250, height: 250 } },
+            onScanSuccess,
+            () => {}
+          );
+        } catch (firstErr) {
+          console.warn('Essai avec configuration principale échoué, essai du repli webcam frontale :', firstErr);
+          // Deuxième chance avec caméra par défaut (webcam PC)
+          await instance.start(
+            { facingMode: 'user' },
+            { fps: 12, qrbox: { width: 250, height: 250 } },
+            onScanSuccess,
+            () => {}
+          );
+        }
+      } catch (err) {
+        if (cancelled) return;
+        console.error('Erreur caméra finale :', err);
+
+        let msg = "Impossible d'activer la caméra en direct.";
+        if (!isSecure) {
+          msg = "Les navigateurs bloquent la caméra en HTTP non chiffré. Veuillez utiliser le lien sécurisé HTTPS ci-dessous.";
+        } else if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          msg = "Permission refusée. Veuillez autoriser l'accès à la caméra dans les paramètres de votre navigateur.";
+        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+          msg = "Aucun périphérique de caméra détecté. Vous pouvez prendre une photo ou utiliser la saisie manuelle.";
+        } else {
+          msg = "Caméra inaccessible ou déjà utilisée par une autre application. Vous pouvez prendre une photo ou saisir le code.";
+        }
+
+        setCameraError(msg);
+        setCameraOpen(false);
+      }
+    }, 200);
 
     return () => {
       cancelled = true;
@@ -218,7 +303,7 @@ function ScanValidation() {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, cameraOpen]);
+  }, [step, cameraOpen, currentCameraIdx]);
 
   const totalSession = historiqueSession.length;
   const autorisesSession = historiqueSession.filter((h) => h.autorise).length;
@@ -226,6 +311,19 @@ function ScanValidation() {
 
   return (
     <main className="main-content scan-onboarding-container">
+      {/* Conteneur caché pour le décodage de clichés photos */}
+      <div id={QR_FILE_DUMMY_ID} style={{ display: 'none' }} />
+
+      {/* Input de fichier caché pour la capture photo native */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept="image/*"
+        capture="environment"
+        style={{ display: 'none' }}
+        onChange={handlePhotoCapture}
+      />
+
       {/* Barre d'étape style Onboarding */}
       <div className="scan-wizard-header">
         <div className="scan-steps-badge-row">
@@ -242,6 +340,17 @@ function ScanValidation() {
 
         {/* Commandes discrètes d'en-tête */}
         <div className="scan-quick-tools">
+          {availableCameras.length > 1 && step === 'scanner' && (
+            <button
+              type="button"
+              className="tool-pill-btn"
+              onClick={handleFlipCamera}
+              title="Inverser la caméra (Avant/Arrière)"
+            >
+              <span className="material-symbols-outlined">flip_camera_ios</span>
+            </button>
+          )}
+
           <button
             type="button"
             className={`tool-pill-btn${soundEnabled ? ' active' : ''}`}
@@ -277,12 +386,77 @@ function ScanValidation() {
             </p>
           </div>
 
+          {/* Bandeau d'alerte si connexion HTTP non sécurisée */}
+          {!isSecure && (
+            <div
+              className="offline-notice"
+              style={{
+                borderLeft: '4px solid #f59e0b',
+                backgroundColor: 'rgba(245, 158, 11, 0.12)',
+                maxWidth: '440px',
+                margin: '0 auto 1rem',
+                borderRadius: '16px',
+                padding: '1rem',
+              }}
+            >
+              <span className="material-symbols-outlined offline-icon" style={{ color: '#f59e0b', fontSize: '28px' }}>
+                lock
+              </span>
+              <div>
+                <div className="offline-title" style={{ color: '#f59e0b', fontWeight: 'bold' }}>
+                  Connexion sécurisée requise pour la caméra
+                </div>
+                <div className="offline-text" style={{ margin: '4px 0 10px', fontSize: '0.82rem', lineHeight: '1.4' }}>
+                  Votre navigateur bloque la caméra sur une adresse IP en HTTP. Ouvrez l'application via son lien HTTPS sécurisé officiel.
+                </div>
+                <a
+                  href={`https://billetterie.167-86-91-52.sslip.io${window.location.pathname}`}
+                  className="btn-primary"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontSize: '0.8rem',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '12px',
+                    textDecoration: 'none',
+                    fontWeight: 700,
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>vpn_key</span>
+                  Basculer en HTTPS Sécurisé (Let's Encrypt)
+                </a>
+              </div>
+            </div>
+          )}
+
           {cameraError && (
             <div className="offline-notice" style={{ maxWidth: '420px', margin: '0 auto 1rem' }}>
               <span className="material-symbols-outlined offline-icon">videocam_off</span>
               <div>
                 <div className="offline-title">Accès caméra restreint</div>
                 <div className="offline-text">{cameraError}</div>
+                <div style={{ marginTop: '0.65rem', display: 'flex', gap: '0.5rem' }}>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    style={{ fontSize: '0.78rem', padding: '0.35rem 0.75rem' }}
+                    onClick={() => {
+                      setCameraError(null);
+                      setCameraOpen(true);
+                    }}
+                  >
+                    Réessayer la caméra
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    style={{ fontSize: '0.78rem', padding: '0.35rem 0.75rem' }}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    Prendre une photo
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -309,15 +483,25 @@ function ScanValidation() {
             </div>
           </div>
 
-          {/* Option de saisie manuelle en bas (Secondaire / Déportée) */}
-          <div className="scan-secondary-options">
+          {/* Options secondaires de secours */}
+          <div className="scan-secondary-options" style={{ flexDirection: 'column', gap: '0.6rem', alignItems: 'center' }}>
+            <button
+              type="button"
+              className="scan-manual-trigger-btn"
+              onClick={() => fileInputRef.current?.click()}
+              title="Ouvre l'appareil photo du téléphone pour prendre un cliché du QR Code"
+            >
+              <span className="material-symbols-outlined">add_a_photo</span>
+              <span>Prendre en photo / Importer un QR Code</span>
+            </button>
+
             <button
               type="button"
               className="scan-manual-trigger-btn"
               onClick={() => setManualModalOpen(true)}
             >
               <span className="material-symbols-outlined">keyboard</span>
-              <span>Caméra indisponible ? Saisie manuelle</span>
+              <span>Saisie manuelle au clavier</span>
             </button>
           </div>
         </section>
@@ -329,19 +513,16 @@ function ScanValidation() {
       {step === 'result' && resultat && (
         <section className="scan-step-view scan-step-decision">
           <div className={`scan-decision-card ${resultat.autorise ? 'autorise' : 'refuse'}`}>
-            {/* Grand Icône Décisionnelle Animée */}
             <div className={`decision-icon-circle ${resultat.autorise ? 'autorise' : 'refuse'}`}>
               <span className="material-symbols-outlined">
                 {resultat.autorise ? 'check_circle' : 'cancel'}
               </span>
             </div>
 
-            {/* Titre Principal percutant */}
             <h1 className="decision-title">
               {resultat.autorise ? 'VOYAGE AUTORISÉ' : 'VOYAGE REFUSÉ'}
             </h1>
 
-            {/* Motif du refus mis en exergue */}
             {!resultat.autorise && resultat.motifRefus && (
               <div className="decision-reason-box" style={motifColors(resultat.motifRefus)}>
                 <span className="material-symbols-outlined reason-icon">error_outline</span>
@@ -353,7 +534,6 @@ function ScanValidation() {
               {resultat.message || (resultat.autorise ? 'Titre valide et contrôlé avec succès' : 'Validation non accordée')}
             </p>
 
-            {/* Fiche récapitulative compacte */}
             <div className="decision-meta-card">
               {resultat.titre?.typeTitre && (
                 <div className="meta-row">
@@ -381,7 +561,6 @@ function ScanValidation() {
               )}
             </div>
 
-            {/* Bouton d'action géant pour enchaîner les voyageurs */}
             <div className="decision-actions-row">
               <button
                 type="button"
@@ -407,7 +586,7 @@ function ScanValidation() {
       )}
 
       {/* =========================================================================
-          TIROIR DÉROULANT : SAISIE MANUELLE AU CLAVIER (FALLBACK DE SECOURS)
+          TIROIR DÉROULANT : SAISIE MANUELLE AU CLAVIER
           ========================================================================= */}
       {manualModalOpen && (
         <div className="customizer-backdrop" onClick={() => setManualModalOpen(false)}>
@@ -502,7 +681,6 @@ function ScanValidation() {
             </div>
 
             <div className="customizer-body">
-              {/* Mini-statistiques */}
               <div className="scan-stats-row" style={{ marginTop: 0 }}>
                 <div className="stats-card scan-stat">
                   <span className="metric-label">Total</span>
@@ -518,7 +696,6 @@ function ScanValidation() {
                 </div>
               </div>
 
-              {/* Liste des derniers scans */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span className="customizer-label">Derniers passages</span>
